@@ -6,6 +6,10 @@ description: >-
   Use when the user mentions dev loop, automated testing, log analysis, debug
   cycle, iterative development, or CI loop.
   开发闭环、自动化测试、日志分析、调试循环、迭代开发。
+license: Apache-2.0
+compatibility:
+  - TuyaOpen environment activated (export.sh)
+  - Device connected via USB (MCU targets) or native Linux host
 ---
 
 # TuyaOpen Build-Deploy-Debug Loop
@@ -35,7 +39,15 @@ The standard development iteration cycle for TuyaOpen hardware:
 
 ### LINUX shortcut
 
-For LINUX platform targets, skip flash/monitor — run the ELF binary directly and capture stdout:
+For LINUX platform targets, skip flash/monitor — use the bundled script:
+
+```bash
+scripts/build_run_linux.sh          # build + run + auto-analyze (30s timeout)
+scripts/build_run_linux.sh 60       # custom timeout in seconds
+scripts/build_run_linux.sh 0        # no timeout (run until Ctrl+C)
+```
+
+Or manually:
 
 ```bash
 ./.build/bin/<project>_<version> 2>&1 | tee device.log
@@ -58,7 +70,7 @@ Where `X` is the log level: `E` (error), `W` (warn), `N` (notice), `I` (info), `
 | `[... ty E]` | Error-level log (`PR_ERR`) | Analyze the error message and source location |
 | `[... ty W]` | Warning (`PR_WARN`) | Usually non-fatal but worth investigating |
 | `feed watchdog` | Health monitor heartbeat (every ~10s) | **Normal** — device is alive |
-| `OPRT_` followed by negative number | SDK operation failed | Look up error code (see table below) |
+| `OPRT_` followed by negative number | SDK operation failed | Look up error code (see `references/ERROR_CODES.md`) |
 | `mqtt connected` or `MQTT_CONNECTED` | Cloud connection established | **Success** — device is online |
 | `TUYA_EVENT_DIRECT_MQTT_CONNECTED` | Direct MQTT event | Cloud connection confirmed |
 | `Replace the TUYA_OPENSDK_UUID` | Placeholder credentials detected | User must configure real UUID/AuthKey |
@@ -76,40 +88,7 @@ Default level is typically `DEBUG`. Set via `tal_log_init(TAL_LOG_LEVEL_DEBUG, 1
 
 ## CLI Testing
 
-### Overview
-
-TuyaOpen includes a built-in CLI system (`tal_cli`) accessible via the debug UART. The CLI prompt is `tuya> `.
-
-### Using CLI via monitor
-
-1. Start monitor: `tos.py monitor` (use the correct baud rate for your chip — see skill `tuyaopen-flash-monitor`)
-2. Type commands at the `tuya> ` prompt
-3. CLI supports tab completion and command history (up/down keys)
-
-### Built-in commands
-
-| Command | Description | Requires |
-|---------|-------------|----------|
-| `help` | List all registered commands | `tal_cli_init()` |
-| `auth <uuid> <authkey>` | Write device credentials | `tuya_authorize_init()` |
-| `auth-read` | Read stored credentials | `tuya_authorize_init()` |
-| `auth-reset` | Clear stored credentials | `tuya_authorize_init()` |
-
-### Registering custom CLI commands
-
-Applications can register custom test commands:
-
-```c
-static void my_test_cmd(int argc, char *argv[]) {
-    PR_DEBUG("test command executed, argc=%d", argc);
-}
-
-static const cli_cmd_t my_cmds[] = {
-    { .name = "mytest", .help = "run my test", .func = my_test_cmd },
-};
-
-tal_cli_cmd_register(my_cmds, sizeof(my_cmds) / sizeof(my_cmds[0]));
-```
+TuyaOpen includes a built-in CLI system (`tal_cli`) accessible via the debug UART (prompt: `tuya> `). For CLI commands, custom command registration, and batch testing details, see `references/ERROR_CODES.md`.
 
 ## Success / Failure Criteria
 
@@ -149,7 +128,7 @@ tal_cli_cmd_register(my_cmds, sizeof(my_cmds) / sizeof(my_cmds[0]));
 
 1. Capture log output after flash (monitor for 10-30 seconds).
 2. Search for `ty E` (errors) and `OPRT_` patterns.
-3. Map error codes using the table below.
+3. Map error codes using `references/ERROR_CODES.md`.
 4. Identify the source file and line from the log.
 5. Fix the code based on the error context.
 6. Restart the loop: build → flash → monitor.
@@ -159,29 +138,3 @@ tal_cli_cmd_register(my_cmds, sizeof(my_cmds) / sizeof(my_cmds[0]));
 1. Verify serial port and baud rate match the chip (see skill `tuyaopen-flash-monitor`).
 2. Reset the device manually.
 3. If still no output, the firmware may have crashed before log init — review recent code changes.
-
-## Common Error Codes
-
-| Code | Name | Value | Typical cause |
-|------|------|-------|---------------|
-| `OPRT_OK` | Success | 0 | — |
-| `OPRT_COM_ERROR` | General error | -1 | Catch-all failure |
-| `OPRT_INVALID_PARM` | Invalid parameter | -2 | NULL pointer or out-of-range argument |
-| `OPRT_MALLOC_FAILED` | Allocation failed | -3 | Out of memory |
-| `OPRT_NOT_SUPPORTED` | Not supported | -4 | Feature disabled or platform mismatch |
-| `OPRT_NETWORK_ERROR` | Network error | -5 | WiFi disconnected or DNS failure |
-| `OPRT_NOT_FOUND` | Not found | -6 | Missing resource, file, or config |
-
-Full error code definitions: `src/common/include/tuya_error_code.h`
-
-## Batch Testing
-
-### Build all configs
-
-```bash
-tos.py dev bac                    # build every config in the project
-tos.py dev bac --dist ./output    # save binaries to output dir
-tos.py dev bac -o ./logs          # save build logs
-```
-
-Useful for regression testing across all supported board configurations.

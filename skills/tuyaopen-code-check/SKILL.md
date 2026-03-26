@@ -5,6 +5,10 @@ description: >-
   headers using clang-format and check_format.py. Use when the user mentions
   code format, lint, clang-format, style check, PR check, or after editing
   C/C++ files. 代码格式、格式检查、代码风格、PR检查、代码规范。
+license: Apache-2.0
+compatibility:
+  - clang-format installed (apt-get install clang-format)
+  - Python 3
 ---
 
 # TuyaOpen Code Format Check
@@ -79,7 +83,8 @@ When editing C/C++ files in this repo:
 
 1. Make your changes.
 2. **Check for sensitive information** before committing (see below).
-3. Run: `python tools/check_format.py --debug --files <changed_files>`
+3. Run the bundled wrapper: `scripts/check_files.sh <changed_files>`
+   Or directly: `python tools/check_format.py --debug --files <changed_files>`
 4. If **format errors**: run `clang-format -style=file -i <file>` to auto-fix, then re-check.
 5. If **Chinese character errors**: replace Chinese text with English — this applies to comments and strings too, not just identifiers.
 6. If **header errors**: ensure the file starts with a proper Doxygen header (see template below). Pay attention to the copyright year.

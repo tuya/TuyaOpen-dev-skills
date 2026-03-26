@@ -64,7 +64,27 @@ flowchart LR
 
 ## Installation
 
-### Option A: Copy into your TuyaOpen project (Recommended)
+Cursor automatically loads skills from the following directories:
+
+| Location | Scope |
+|----------|-------|
+| `.agents/skills/` | Project |
+| `.cursor/skills/` | Project |
+| `~/.cursor/skills/` | User (global) |
+
+### Option A: Install from GitHub in Cursor (Recommended)
+
+Import skills directly from this GitHub repository without cloning:
+
+1. Open **Cursor Settings** (Ctrl+Shift+J on Linux/Windows, Cmd+Shift+J on Mac)
+2. Go to **Rules**
+3. In the **Project Rules** section, click **Add Rule**
+4. Select **Remote Rule (Github)**
+5. Enter: `https://github.com/tuya/TuyaOpen-dev-skills`
+
+Cursor will fetch and keep the skills in sync automatically.
+
+### Option B: Copy into your TuyaOpen project
 
 Copy the `skills/` directory into your TuyaOpen project as `.agents/skills/`:
 
@@ -73,9 +93,7 @@ git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 cp -r TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills/
 ```
 
-Cursor IDE will automatically detect and load skills from `.agents/skills/`.
-
-### Option B: Symlink
+### Option C: Symlink
 
 Create a symbolic link so skills stay in sync with this repo:
 
@@ -84,7 +102,7 @@ git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 ln -s /path/to/TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills
 ```
 
-### Option C: Pick individual skills
+### Option D: Pick individual skills
 
 Copy only the skills you need:
 
@@ -102,15 +120,36 @@ TuyaOpen-dev-skills/
 ├── README_zh.md
 ├── LICENSE
 └── skills/
-    ├── tuyaopen-env-setup/SKILL.md
-    ├── tuyaopen-build/SKILL.md
-    ├── tuyaopen-project-config/SKILL.md
-    ├── tuyaopen-code-check/SKILL.md
-    ├── tuyaopen-flash-monitor/SKILL.md
-    ├── tuyaopen-add-board/SKILL.md
-    ├── tuyaopen-dev-loop/SKILL.md
-    └── tuyaopen-device-auth/SKILL.md
+    ├── tuyaopen-env-setup/
+    │   ├── SKILL.md
+    │   └── scripts/check_env.sh
+    ├── tuyaopen-build/
+    │   ├── SKILL.md
+    │   └── references/KCONFIG_GUIDE.md
+    ├── tuyaopen-project-config/
+    │   ├── SKILL.md
+    │   └── references/TOS_COMMANDS.md
+    ├── tuyaopen-code-check/
+    │   ├── SKILL.md
+    │   └── scripts/check_files.sh
+    ├── tuyaopen-flash-monitor/
+    │   └── SKILL.md
+    ├── tuyaopen-add-board/
+    │   ├── SKILL.md
+    │   └── references/BOARD_LAYERS.md
+    ├── tuyaopen-dev-loop/
+    │   ├── SKILL.md
+    │   ├── scripts/build_run_linux.sh
+    │   └── references/ERROR_CODES.md
+    └── tuyaopen-device-auth/
+        ├── SKILL.md
+        └── references/PROVISIONING.md
 ```
+
+Each skill follows the [Agent Skills](https://agentskills.io/) standard:
+- `SKILL.md` — concise core instructions loaded automatically by the agent
+- `references/` — detailed documentation loaded on demand for context efficiency
+- `scripts/` — executable scripts the agent can run directly
 
 ## Related Resources
 
@@ -125,8 +164,10 @@ Contributions are welcome! To add or improve a skill:
 
 1. Fork this repository
 2. Edit or create a `SKILL.md` in `skills/<skill-name>/`
-3. Follow the existing YAML front-matter format (`name`, `description`)
-4. Submit a Pull Request
+3. Follow the YAML front-matter format (`name`, `description`, `license`, `compatibility`)
+4. Keep `SKILL.md` concise — move detailed reference material to `references/`
+5. Add agent-executable scripts to `scripts/` when automatable workflows exist
+6. Submit a Pull Request
 
 ## License
 

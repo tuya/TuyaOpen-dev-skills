@@ -5,6 +5,11 @@ description: >-
   dependencies, and initialize tos.py. Use when the user mentions environment
   setup, activating the SDK, installing dependencies, export.sh, or when
   tos.py is not found. 环境搭建、环境初始化、激活开发环境、安装依赖。
+license: Apache-2.0
+compatibility:
+  - Ubuntu/Debian with apt-get (or macOS/Windows equivalent)
+  - Python >= 3.6
+  - git >= 2.0, cmake >= 3.28, make >= 3.0, ninja >= 1.6
 ---
 
 # TuyaOpen Environment Setup
@@ -52,6 +57,16 @@ else
     cd "$(git rev-parse --show-toplevel)" && . ./export.sh
 fi
 ```
+
+## Quick Check (Agent)
+
+Run the bundled verification script to check if the environment is ready:
+
+```bash
+scripts/check_env.sh
+```
+
+This checks venv activation, `OPEN_SDK_ROOT`, `tos.py`, git, cmake, and python3 in one pass.
 
 ## Verification
 

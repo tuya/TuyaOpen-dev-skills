@@ -5,6 +5,11 @@ description: >-
   user mentions flashing, burning firmware, tos.py flash, viewing device logs,
   serial monitor, tos.py monitor, or device authorization.
   固件烧录、刷固件、串口日志、设备日志、设备授权。
+license: Apache-2.0
+compatibility:
+  - TuyaOpen environment activated (export.sh)
+  - Device connected via USB
+  - Serial port permission (Linux: user in dialout group)
 ---
 
 # TuyaOpen Flash & Monitor

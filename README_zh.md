@@ -64,7 +64,27 @@ flowchart LR
 
 ## 安装方法
 
-### 方式 A：复制到 TuyaOpen 项目（推荐）
+Cursor 会自动从以下目录加载技能：
+
+| 位置 | 作用域 |
+|------|--------|
+| `.agents/skills/` | 项目级 |
+| `.cursor/skills/` | 项目级 |
+| `~/.cursor/skills/` | 用户级（全局） |
+
+### 方式 A：在 Cursor 中从 GitHub 安装（推荐）
+
+无需手动克隆，直接从 GitHub 仓库导入技能：
+
+1. 打开 **Cursor Settings**（Linux/Windows: Ctrl+Shift+J，Mac: Cmd+Shift+J）
+2. 前往 **Rules**
+3. 在 **Project Rules** 部分，点击 **Add Rule**
+4. 选择 **Remote Rule (Github)**
+5. 输入：`https://github.com/tuya/TuyaOpen-dev-skills`
+
+Cursor 会自动拉取并保持技能同步。
+
+### 方式 B：复制到 TuyaOpen 项目
 
 将 `skills/` 目录复制到 TuyaOpen 项目的 `.agents/skills/` 下：
 
@@ -73,9 +93,7 @@ git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 cp -r TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills/
 ```
 
-Cursor IDE 会自动检测并加载 `.agents/skills/` 下的技能文件。
-
-### 方式 B：符号链接
+### 方式 C：符号链接
 
 创建符号链接，让技能包与本仓库保持同步：
 
@@ -84,7 +102,7 @@ git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 ln -s /path/to/TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills
 ```
 
-### 方式 C：按需选择
+### 方式 D：按需选择
 
 只复制你需要的技能：
 
@@ -102,15 +120,36 @@ TuyaOpen-dev-skills/
 ├── README_zh.md
 ├── LICENSE
 └── skills/
-    ├── tuyaopen-env-setup/SKILL.md
-    ├── tuyaopen-build/SKILL.md
-    ├── tuyaopen-project-config/SKILL.md
-    ├── tuyaopen-code-check/SKILL.md
-    ├── tuyaopen-flash-monitor/SKILL.md
-    ├── tuyaopen-add-board/SKILL.md
-    ├── tuyaopen-dev-loop/SKILL.md
-    └── tuyaopen-device-auth/SKILL.md
+    ├── tuyaopen-env-setup/
+    │   ├── SKILL.md
+    │   └── scripts/check_env.sh
+    ├── tuyaopen-build/
+    │   ├── SKILL.md
+    │   └── references/KCONFIG_GUIDE.md
+    ├── tuyaopen-project-config/
+    │   ├── SKILL.md
+    │   └── references/TOS_COMMANDS.md
+    ├── tuyaopen-code-check/
+    │   ├── SKILL.md
+    │   └── scripts/check_files.sh
+    ├── tuyaopen-flash-monitor/
+    │   └── SKILL.md
+    ├── tuyaopen-add-board/
+    │   ├── SKILL.md
+    │   └── references/BOARD_LAYERS.md
+    ├── tuyaopen-dev-loop/
+    │   ├── SKILL.md
+    │   ├── scripts/build_run_linux.sh
+    │   └── references/ERROR_CODES.md
+    └── tuyaopen-device-auth/
+        ├── SKILL.md
+        └── references/PROVISIONING.md
 ```
+
+每个技能遵循 [Agent Skills](https://agentskills.io/) 开放标准：
+- `SKILL.md` — 简洁的核心指令，由 Agent 自动加载
+- `references/` — 详细参考文档，按需加载以节省上下文
+- `scripts/` — Agent 可直接执行的脚本
 
 ## 相关资源
 
@@ -125,8 +164,10 @@ TuyaOpen-dev-skills/
 
 1. Fork 本仓库
 2. 在 `skills/<技能名>/` 下编辑或创建 `SKILL.md`
-3. 遵循现有的 YAML front-matter 格式（`name`、`description`）
-4. 提交 Pull Request
+3. 遵循 YAML front-matter 格式（`name`、`description`、`license`、`compatibility`）
+4. 保持 `SKILL.md` 简洁——将详细参考资料放到 `references/` 目录
+5. 如有可自动化的工作流，将可执行脚本放到 `scripts/` 目录
+6. 提交 Pull Request
 
 ## 许可证
 
