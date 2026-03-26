@@ -80,7 +80,9 @@ Cursor 会自动从以下目录加载技能：
 2. 前往 **Rules**
 3. 在 **Project Rules** 部分，点击 **Add Rule**
 4. 选择 **Remote Rule (Github)**
-5. 输入：`https://github.com/tuya/TuyaOpen-dev-skills`
+5. 输入：`https://github.com/tuya/TuyaOpen-dev-skills.git`
+
+![Remote Rule Import](https://images.tuyacn.com/fe-static/docs/img/39fc8328-1853-459d-b21b-199f4784e344.png)
 
 Cursor 会自动拉取并保持技能同步。
 

@@ -80,7 +80,9 @@ Import skills directly from this GitHub repository without cloning:
 2. Go to **Rules**
 3. In the **Project Rules** section, click **Add Rule**
 4. Select **Remote Rule (Github)**
-5. Enter: `https://github.com/tuya/TuyaOpen-dev-skills`
+5. Enter: `https://github.com/tuya/TuyaOpen-dev-skills.git`
+
+![Remote Rule Import](https://images.tuyacn.com/fe-static/docs/img/39fc8328-1853-459d-b21b-199f4784e344.png)
 
 Cursor will fetch and keep the skills in sync automatically.
 
