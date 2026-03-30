@@ -77,11 +77,21 @@ CONFIG_ENABLE_MBEDTLS_SSL_MAX_CONTENT_LEN=4096
 ```
 
 Key points:
-- `CONFIG_BOARD_CHOICE_<PLATFORM>=y` selects the platform (e.g. `T5AI`, `ESP32`).
-- `CONFIG_BOARD_CHOICE_<BOARD>=y` selects the specific board under that platform (e.g. `TUYA_T5AI_CORE`, `DNESP32S3`). Both are needed.
+- `CONFIG_BOARD_CHOICE_<PLATFORM>=y` selects the platform (e.g. `T5AI`, `ESP32`, `LINUX`).
+- `CONFIG_BOARD_CHOICE_<BOARD>=y` selects the specific board under that platform (e.g. `TUYA_T5AI_CORE`, `DNESP32S3`, `UBUNTU`). **Both platform and board are required.**
 - `CHIP_CHOICE` and `PLATFORM_CHOICE` are auto-set by the board's Kconfig — do not set them manually.
 - Boolean options: `CONFIG_X=y` to enable, `# CONFIG_X is not set` to disable.
 - String options: `CONFIG_X="value"`. Integer options: `CONFIG_X=1234`.
+
+Common platform + board config pairs:
+
+| Target | `app_default.config` lines |
+|--------|---------------------------|
+| LINUX / Ubuntu (native x86/x64) | `CONFIG_BOARD_CHOICE_LINUX=y`<br>`CONFIG_BOARD_CHOICE_UBUNTU=y` |
+| LINUX / Raspberry Pi | `CONFIG_BOARD_CHOICE_LINUX=y`<br>`CONFIG_BOARD_CHOICE_RASPBERRY_PI=y` |
+| T5AI EVB | `CONFIG_BOARD_CHOICE_T5AI=y`<br>`CONFIG_BOARD_CHOICE_TUYA_T5AI_EVB=y` |
+| T5AI Core | `CONFIG_BOARD_CHOICE_T5AI=y`<br>`CONFIG_BOARD_CHOICE_TUYA_T5AI_CORE=y` |
+| ESP32-S3 | `CONFIG_BOARD_CHOICE_ESP32=y`<br>`CONFIG_BOARD_CHOICE_ESP32_S3=y` |
 
 ### Config Pipeline
 
@@ -129,13 +139,19 @@ tos.py clean -f     # full clean — deletes .build/ entirely
 
 ## Running (LINUX target)
 
-LINUX platform produces a native ELF binary:
+LINUX platform produces a native ELF binary. Build output is copied to `dist/`:
 
 ```bash
-./.build/bin/<project_name>_<version>
+./dist/<project_name>_<version>/<project_name>_<version>.elf
 ```
 
-The exact filename is printed at the end of a successful build.
+A copy also exists at `.build/bin/` during the build. The `dist/` path is the canonical output location printed at the end of a successful build.
+
+Example (for a project named `hello_world_linux` version 1.0.0):
+
+```bash
+./dist/hello_world_linux_1.0.0/hello_world_linux_1.0.0.elf
+```
 
 ## Troubleshooting
 
@@ -145,6 +161,7 @@ The exact filename is printed at the end of a successful build.
 | Toolchain download fails | Network issue | Retry `tos.py build`; check `platform/` directory |
 | Build fails after config change | Incompatible options | `tos.py clean -f` then re-select config with `tos.py config choice` |
 | `No rule to make target` | Stale build cache | `tos.py clean -f && tos.py build` |
-| Build hangs with `y/n/d` prompt (Agent/CI) | Platform commit mismatch | `mkdir -p .cache && touch .cache/.dont_prompt_update_platform` after `. ./export.sh`, or `tos.py update` first |
+| Build hangs with `y/n/d` prompt (Agent/CI) | Platform commit mismatch | `mkdir -p .cache && touch .cache/.dont_prompt_update_platform` after `. ./export.sh`, or `tos.py update` first. **Always create this file in non-interactive workflows.** |
 | Config option silently ignored | Missing `depends on` prerequisite | Check `.build/cache/using.config` to verify; grep Kconfig files for dependency chain |
 | `FATAL_ERROR ... using.config` | No config selected yet | Run `tos.py config choice` to select a config first |
+| Build succeeds but ELF not in `dist/` | Platform linker did not produce expected binary name | Check `.build/bin/` for the raw output; verify project name matches directory name |

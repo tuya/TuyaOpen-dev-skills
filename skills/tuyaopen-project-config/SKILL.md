@@ -109,6 +109,148 @@ Prompts for a name, then copies current `app_default.config` to the project's `c
 
 Edit `app_default.config` directly — no TTY needed. This is the recommended approach for automated workflows. See skill `tuyaopen-build` for format details and Kconfig dependency handling.
 
+## Non-Interactive Project Creation (Agent / CI)
+
+`tos.py new` is interactive and cannot be used in Agent/CI. Create the project manually by writing three files.
+
+### Required Directory Structure
+
+```
+<project_name>/
+├── CMakeLists.txt
+├── app_default.config
+└── src/
+    └── tuya_app_main.c
+```
+
+The project can live under `examples/` or `apps/` — both are valid build locations.
+
+### Step 1: CMakeLists.txt
+
+```cmake
+##
+# @file CMakeLists.txt
+# @brief
+#/
+
+set(APP_PATH ${CMAKE_CURRENT_LIST_DIR})
+
+get_filename_component(APP_NAME ${APP_PATH} NAME)
+
+aux_source_directory(${APP_PATH}/src APP_SRC)
+
+set(APP_INC ${APP_PATH}/include)
+
+########################################
+# Target Configure
+########################################
+add_library(${EXAMPLE_LIB})
+
+target_sources(${EXAMPLE_LIB}
+    PRIVATE
+        ${APP_SRC}
+    )
+
+target_include_directories(${EXAMPLE_LIB}
+    PRIVATE
+        ${APP_INC}
+    )
+```
+
+This is the standard template from `tools/app_template/base/CMakeLists.txt`. It auto-collects all `.c` files under `src/` — no need to list them individually.
+
+### Step 2: app_default.config
+
+Select the target platform and board. **Both a platform choice and a board choice are required.**
+
+Common platform + board pairs:
+
+| Platform | Config lines | Target |
+|----------|-------------|--------|
+| LINUX / Ubuntu | `CONFIG_BOARD_CHOICE_LINUX=y`<br>`CONFIG_BOARD_CHOICE_UBUNTU=y` | Native x86/x64 ELF on Ubuntu/Debian |
+| LINUX / Raspberry Pi | `CONFIG_BOARD_CHOICE_LINUX=y`<br>`CONFIG_BOARD_CHOICE_RASPBERRY_PI=y` | Native ARM ELF on RPi |
+| T5AI | `CONFIG_BOARD_CHOICE_T5AI=y` | Tuya T5AI MCU |
+| ESP32 | `CONFIG_BOARD_CHOICE_ESP32=y` | Espressif ESP32 series |
+
+Example for LINUX (the only platform that can compile and run natively on the host):
+
+```
+CONFIG_BOARD_CHOICE_LINUX=y
+CONFIG_BOARD_CHOICE_UBUNTU=y
+```
+
+### Step 3: src/tuya_app_main.c
+
+Entry source file **must be named `tuya_app_main.c`** (convention from the official template). It follows a dual-path entry pattern:
+
+```c
+#include "tal_api.h"
+#include "tkl_output.h"
+
+static void user_main(void)
+{
+    tal_log_init(TAL_LOG_LEVEL_DEBUG, 1024, (TAL_LOG_OUTPUT_CB)tkl_log_output);
+    PR_DEBUG("hello world\r\n");
+
+    while (1) {
+        tal_system_sleep(1000);
+    }
+}
+
+#if OPERATING_SYSTEM == SYSTEM_LINUX
+void main(int argc, char *argv[])
+{
+    user_main();
+}
+#else
+
+static THREAD_HANDLE ty_app_thread = NULL;
+
+static void tuya_app_thread(void *arg)
+{
+    user_main();
+    tal_thread_delete(ty_app_thread);
+    ty_app_thread = NULL;
+}
+
+void tuya_app_main(void)
+{
+    THREAD_CFG_T thrd_param = {0};
+    thrd_param.stackDepth = 1024 * 4;
+    thrd_param.priority = THREAD_PRIO_1;
+    thrd_param.thrdname = "tuya_app_main";
+    tal_thread_create_and_start(&ty_app_thread, NULL, NULL, tuya_app_thread, NULL, &thrd_param);
+}
+#endif
+```
+
+Key points:
+- `user_main()` contains all application logic
+- On LINUX: `main()` calls `user_main()` directly (native process)
+- On MCU: `tuya_app_main()` spawns a thread that calls `user_main()`
+- `OPERATING_SYSTEM == SYSTEM_LINUX` (value 100) is set automatically by the LINUX platform Kconfig
+
+### Step 4: Build and Run
+
+```bash
+mkdir -p .cache && touch .cache/.dont_prompt_update_platform   # suppress interactive prompts
+cd <project_dir>
+tos.py build
+# LINUX: run the ELF directly
+./dist/<project>_<version>/<project>_<version>.elf
+```
+
+### Common TAL APIs for Quick Prototyping
+
+| API | Header | Description |
+|-----|--------|-------------|
+| `tal_log_init(level, bufsize, cb)` | `tal_api.h` | Initialize logging (`tkl_log_output` as callback) |
+| `PR_DEBUG/PR_NOTICE/PR_ERR(fmt, ...)` | `tal_api.h` | Log at different levels |
+| `tal_system_sleep(ms)` | `tal_api.h` | Sleep for N milliseconds |
+| `tal_system_get_random(range)` | `tal_api.h` | Random integer in [0, range) |
+| `tal_system_get_millisecond()` | `tal_api.h` | System uptime in milliseconds |
+| Available macros: | `tuya_kconfig.h` (auto) | `PROJECT_NAME`, `PROJECT_VERSION`, `PLATFORM_BOARD`, `PLATFORM_CHIP`, `OPEN_VERSION` |
+
 ## Updating Dependencies
 
 ```bash

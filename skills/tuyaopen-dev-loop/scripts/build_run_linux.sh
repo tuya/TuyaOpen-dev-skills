@@ -26,9 +26,12 @@ if ! tos.py build; then
     exit 1
 fi
 
-BINARY=$(find .build/bin/ -maxdepth 1 -type f -executable 2>/dev/null | head -1)
+BINARY=$(find dist/ -name "*.elf" -type f -executable 2>/dev/null | head -1)
 if [ -z "$BINARY" ]; then
-    echo "[ERROR] No executable found in .build/bin/"
+    BINARY=$(find .build/bin/ -maxdepth 1 -type f -executable 2>/dev/null | head -1)
+fi
+if [ -z "$BINARY" ]; then
+    echo "[ERROR] No executable found in dist/ or .build/bin/"
     exit 1
 fi
 

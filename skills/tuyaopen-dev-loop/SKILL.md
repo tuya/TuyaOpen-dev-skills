@@ -50,8 +50,10 @@ scripts/build_run_linux.sh 0        # no timeout (run until Ctrl+C)
 Or manually:
 
 ```bash
-./.build/bin/<project>_<version> 2>&1 | tee device.log
+./dist/<project>_<version>/<project>_<version>.elf 2>&1 | tee device.log
 ```
+
+Both `dist/` (canonical output) and `.build/bin/` (build intermediate) contain the ELF. Use `dist/` for consistency.
 
 ## Log Format & Patterns
 
