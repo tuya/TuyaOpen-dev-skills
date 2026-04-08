@@ -1,0 +1,9 @@
+# agent_target_tool — single requirements file for runtime + dev tests.
+# From TuyaOpen repo root:
+#   pip install -r .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool_requirements.txt
+#
+# Runtime (serial enumeration, logging, CLI helpers)
+pyserial>=3.5
+#
+# Dev / automated tests (pytest -q .agents/skills/agent-hardware-debug-helper-tools/tests)
+pytest>=7.0

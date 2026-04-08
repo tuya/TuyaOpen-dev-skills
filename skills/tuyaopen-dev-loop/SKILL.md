@@ -32,9 +32,9 @@ The standard development iteration cycle for TuyaOpen hardware:
 ### Step-by-step
 
 1. **Build**: `tos.py build` — compile firmware (see skill `tuyaopen-build`)
-2. **Flash**: `tos.py flash` — deploy to device (see skill `tuyaopen-flash-monitor`)
-3. **Monitor**: `tos.py monitor` — capture serial log output
-4. **Analyze**: parse logs for errors, warnings, crash indicators
+2. **Flash**: `tos.py flash` — deploy to device (see skill `tuyaopen-flash-monitor`); pass **`-p`** when tyutool would otherwise prompt for the port
+3. **Monitor / capture logs**: `tos.py monitor` for interactive sessions, or **hands-off** **`agent_target_tool.py service start --detach`** → **`service tail`** / **`logs latest`** (JSON on stdout; see **`agent-hardware-debug-helper-tools`** → *Hands-off logging (for agent analysis)*)
+4. **Analyze**: parse **`service tail`** `text` or the log file under **`.target_logging/`** for errors, warnings, crash indicators (patterns below)
 5. **Decide**: pass (device healthy) or fail (fix code and restart loop)
 
 ### LINUX shortcut
@@ -140,3 +140,52 @@ TuyaOpen includes a built-in CLI system (`tal_cli`) accessible via the debug UAR
 1. Verify serial port and baud rate match the chip (see skill `tuyaopen-flash-monitor`).
 2. Reset the device manually.
 3. If still no output, the firmware may have crashed before log init — review recent code changes.
+
+## AI agent helper: `agent-hardware-debug-helper-tools` (`agent_target_tool.py`)
+
+Full reference: skill **`agent-hardware-debug-helper-tools`**. Script path (relative to **TuyaOpen repo root**):
+
+`.agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py`
+
+The tool resolves the repo root by searching for **`tos.py`** (not by path depth). Logs and session files always sit under **`<repo>/.target_logging/`**, independent of your shell current directory.
+
+Cross-platform helper for **listing USB serial ports**, **background logging** to `.target_logging/<date>/<timestamp>.log`, and **optional non-blocking UART CLI injection** when the firmware exposes `tal_cli` / test commands over the debug UART. Default profile is **Tuya T5 / T5AI** (`--target tuya_t5`, monitor baud 460800).
+
+**Dependency:** `pip install -r .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool_requirements.txt` (`pyserial`).
+
+**T5 USB–UART:** Official T5 / T5AI dev boards normally use a **WCH CH34x dual-serial** bridge with **VID `0x1a86`** and **PID `0x55d2`**. `pick-port` and `service start` (without `--port`) look for this pair; if it is missing, JSON returns **`error`: `device_not_found`**, **`reason_code`**, and **`discovery_log`**. Use **`-v` / `--verbose`** on stderr (safe with `--json`). **`--allow-any-serial`** is only for non-standard bridges.
+
+**Typical flow** (`<REPO>` = repo root; from `<REPO>` you can use paths as below):
+
+1. `python .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py --json list-devices`
+2. `python .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py -v --json pick-port`
+3. **One-shot debug capture (preferred when analyzing a fresh boot log):**  
+   `python .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py --json debug-session run`  
+   Starts detached logging, sends a **CLI `reboot`** by default (or `--hw-reset` for a DTR/RTS pulse), waits **`--boot-wait`** seconds, then returns JSON with **`log_file`**. If a logging session is already running, it is **stopped automatically** (single instance); JSON may include **`replaced_previous_session`: true**.
+4. `python .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py --json service tail -n 200` — read buffered log.
+5. **(Optional)** `cli help` / `cli send` / `cli reboot` — only if the **built firmware** registers UART CLI or test hooks; skip otherwise and rely on logs + reset (`debug-session run` with **`--no-cli-reboot`** / **`--hw-reset`** as appropriate).
+6. `python .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py --json logs latest` — resolve **newest** `*.log` under `.target_logging/` (also **`recommended`** in JSON).
+7. `python .agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py --json service stop` — release serial port.
+
+**Manual equivalent of step 3** (if not using `debug-session run`):  
+`service start --detach` → reset (hardware or CLI, if applicable) → **`service tail`** → **optional CLI** → **`service stop`**.
+
+Session metadata: **`<repo>/.target_logging/session.json`** (at most one active service; restarting replaces it). Each new logging run updates **`<repo>/.target_logging/LATEST_LOG`**. Timed logging: `service start --duration SEC` or `debug-session run --duration SEC`.
+
+### Iteration loop (analyze → fix → re-run)
+
+Repeat until logs are clean:
+
+1. **Build** → **flash** (see `tuyaopen-build` / `tuyaopen-flash-monitor`).
+2. **`debug-session run`** (or `service start --detach` + reset) to capture a **full boot + runtime** trace.
+3. **`service tail`** / read **`logs latest`** → search `ty E`, `OPRT_`, watchdog, MQTT (see [Log Format](#log-format--patterns) above).
+4. **(Optional)** **`cli help`** / **`cli send`** — only if the app implements **UART CLI test functions**; otherwise infer behavior from logs alone or add CLI commands in firmware first.
+5. Edit code → go to step 1.
+6. **`service stop`** when done so the port is free for the next flash.
+
+**`tos.py` wrappers** (from an app directory, pass **`--project-dir .`**):
+
+- `python <path-to-repo>/.agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py --project-dir . flash -p /dev/ttyACM0`
+- `python <path-to-repo>/.agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py --project-dir . monitor -p /dev/ttyACM1`
+
+Dual UART (T5): see **`tuyaopen-flash-monitor`**. Use **`service start`** on the **monitor** port; **`flash`** on the programming port.

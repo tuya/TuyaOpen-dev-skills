@@ -31,6 +31,7 @@ Skills are structured knowledge files (`SKILL.md`) that give AI coding assistant
 | **Add Board** | [`tuyaopen-add-board`](skills/tuyaopen-add-board/) | Add new board BSP: Kconfig, drivers, pin config, layer rules |
 | **Dev Loop** | [`tuyaopen-dev-loop`](skills/tuyaopen-dev-loop/) | Build-flash-monitor-analyze iteration cycle, error code lookup |
 | **Device Auth** | [`tuyaopen-device-auth`](skills/tuyaopen-device-auth/) | Configure UUID/AuthKey/PID, serial authorization, network provisioning |
+| **Agent hardware debug helper** | [`agent-hardware-debug-helper-tools`](skills/agent-hardware-debug-helper-tools/) | `agent_target_tool.py`: USB discovery, background logging, optional UART CLI (if firmware exposes it), `tos.py` wrappers |
 
 ## Development Workflow
 

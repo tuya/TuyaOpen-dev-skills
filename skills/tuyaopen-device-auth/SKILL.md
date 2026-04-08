@@ -80,6 +80,14 @@ Three ways to obtain:
 
 For CLI-based serial authorization (port selection, baud rates, commands), provisioning modes (BLE / AP), and the full provisioning flow, see `references/PROVISIONING.md`.
 
+### Serial port discovery (agents)
+
+Before interactive auth over UART, resolve the correct COM/tty device:
+
+- Use skill **`agent-hardware-debug-helper-tools`**: run **`agent_target_tool.py`** from **`.agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py`** (paths relative to **TuyaOpen repo root**). It finds the repo by locating **`tos.py`**, then **`list-devices`** / **`pick-port`** with **VID `0x1a86`** / **PID `0x55d2`** for the default T5 USB–UART (dual-serial boards expose two interfaces — flash/auth often uses the **lower** enumerated port, monitor/log the **higher**; see **`tuyaopen-flash-monitor`**).
+- Pass the chosen port to **`tos.py monitor`** / tyutool flows as documented in provisioning, or use **`agent_target_tool.py monitor --project-dir <app>`** for a consistent wrapper.
+- To capture logs during provisioning without blocking the agent, use **`service start --detach`**, **`service tail`**, and **`logs latest`**; use **`debug-session run`** when a **clean reboot log** is needed first.
+
 ## Agent Strategy
 
 ### When generating or modifying tuya_config.h

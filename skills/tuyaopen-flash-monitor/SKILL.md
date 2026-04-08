@@ -91,9 +91,12 @@ The mapping above is the **common case**, but it is **not guaranteed**. The actu
 ### Agent strategy for port identification
 
 1. List available ports: `ls /dev/ttyACM*` (Linux) or check Device Manager (Windows).
-2. **Try flash first** with the typical port (lower number). If `tos.py flash` reports an error or times out, swap to the other port.
-3. **Try monitor** with the other port. If output is garbled, check the baud rate (see table above). If no output at all, swap ports.
-4. If **both attempts fail**, ask the user which port is which. The user can physically check by pressing reset and seeing which port produces log output.
+2. **Optional (recommended for agents):** use skill **`agent-hardware-debug-helper-tools`** — `agent_target_tool.py list-devices` / `pick-port` enumerates **VID/PID** and flags the **T5 default USB–UART** (**VID `0x1a86`**, **PID `0x55d2`**, WCH dual-serial). Logs go to **`<repo>/.target_logging/`**; the script lives at **`.agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py`** (repo root = directory containing `tos.py`).
+3. **Try flash first** with the typical port (lower number). If `tos.py flash` reports an error or times out, swap to the other port.
+4. **Try monitor** with the other port. If output is garbled, check the baud rate (see table above). If no output at all, swap ports.
+5. If **both attempts fail**, ask the user which port is which. The user can physically check by pressing reset and seeing which port produces log output.
+
+You can also wrap **`tos.py flash`** / **`tos.py monitor`** via **`agent_target_tool.py`** with **`--project-dir`** set to the app directory (see **`agent-hardware-debug-helper-tools`** skill). Flash and monitor **stream tyutool output live** (not buffered until exit). **`flash`/`monitor` can take a long time** — large image write, or **auto port detection** when `-p` is omitted; prefer **`flash -p …` / `monitor -p …`** after **`pick-port`**. For **automated monitor + reset + boot log**, use **`debug-session run`** and **`logs latest`**; **`cli help`** / **`cli reboot`** are **optional** and only apply when firmware exposes a UART CLI.
 
 ## ESP32 Platform: idf.py Passthrough
 
