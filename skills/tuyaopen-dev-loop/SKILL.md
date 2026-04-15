@@ -42,9 +42,9 @@ The standard development iteration cycle for TuyaOpen hardware:
 For LINUX platform targets, skip flash/monitor — use the bundled script:
 
 ```bash
-scripts/build_run_linux.sh          # build + run + auto-analyze (30s timeout)
-scripts/build_run_linux.sh 60       # custom timeout in seconds
-scripts/build_run_linux.sh 0        # no timeout (run until Ctrl+C)
+.agents/skills/tuyaopen-dev-loop/scripts/build_run_linux.sh          # build + run + auto-analyze (30s timeout)
+.agents/skills/tuyaopen-dev-loop/scripts/build_run_linux.sh 60       # custom timeout in seconds
+.agents/skills/tuyaopen-dev-loop/scripts/build_run_linux.sh 0        # no timeout (run until Ctrl+C)
 ```
 
 Or manually:

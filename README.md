@@ -73,9 +73,11 @@ Cursor automatically loads skills from the following directories:
 | `.cursor/skills/` | Project |
 | `~/.cursor/skills/` | User (global) |
 
-### Option A: Install from GitHub in Cursor (Recommended)
+For skills that include executable scripts, shell wrappers, or repo-relative command examples, use **project-local** `.agents/skills/`. The command examples in this repository assume that path. `.cursor/skills/` and `~/.cursor/skills/` can load `SKILL.md` content into Cursor, but they do **not** provide the stable repo-local filesystem path expected by commands such as `agent_target_tool.py` or the bundled shell scripts.
 
-Import skills directly from this GitHub repository without cloning:
+### Option A: Import from GitHub in Cursor
+
+Import skills directly from this GitHub repository without cloning. This is convenient for loading `SKILL.md` content into Cursor. If you also want to run the bundled scripts from a terminal, prefer **Option B** or **Option C**.
 
 1. Open **Cursor Settings** (Ctrl+Shift+J on Linux/Windows, Cmd+Shift+J on Mac)
 2. Go to **Rules**
@@ -93,7 +95,8 @@ Copy the `skills/` directory into your TuyaOpen project as `.agents/skills/`:
 
 ```bash
 git clone https://github.com/tuya/TuyaOpen-dev-skills.git
-cp -r TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills/
+mkdir -p /path/to/TuyaOpen/.agents/skills
+cp -r TuyaOpen-dev-skills/skills/* /path/to/TuyaOpen/.agents/skills/
 ```
 
 ### Option C: Symlink
@@ -102,6 +105,7 @@ Create a symbolic link so skills stay in sync with this repo:
 
 ```bash
 git clone https://github.com/tuya/TuyaOpen-dev-skills.git
+mkdir -p /path/to/TuyaOpen/.agents
 ln -s /path/to/TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills
 ```
 
@@ -144,9 +148,14 @@ TuyaOpen-dev-skills/
     │   ├── SKILL.md
     │   ├── scripts/build_run_linux.sh
     │   └── references/ERROR_CODES.md
-    └── tuyaopen-device-auth/
+    ├── tuyaopen-device-auth/
+    │   ├── SKILL.md
+    │   └── references/PROVISIONING.md
+    └── agent-hardware-debug-helper-tools/
         ├── SKILL.md
-        └── references/PROVISIONING.md
+        ├── agent_target_tool.py
+        ├── agent_target_tool_requirements.txt
+        └── tests/test_agent_target_tool.py
 ```
 
 Each skill follows the [Agent Skills](https://agentskills.io/) standard:
@@ -157,7 +166,7 @@ Each skill follows the [Agent Skills](https://agentskills.io/) standard:
 ## Related Resources
 
 - [TuyaOpen](https://github.com/tuya/TuyaOpen) — Main SDK repository
-- [TuyaOpen Documentation](https://tuyaopen.ai/zh/docs) — Official docs
+- [TuyaOpen Documentation](https://tuyaopen.io/docs/quick-start) — Official docs
 - [Tuya IoT Platform](https://platform.tuya.com) — Cloud platform for device management
 - [Cursor IDE](https://cursor.com) — AI-powered code editor
 

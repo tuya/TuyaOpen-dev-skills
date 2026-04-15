@@ -14,7 +14,7 @@ compatibility:
 
 # TuyaOpen Project & Config Management
 
-Docs: <https://tuyaopen.ai/zh/docs/tos-tools/tos-guide>
+Docs: <https://tuyaopen.io/docs/tos-tools/tos-guide>
 
 ## Creating a New Project
 
@@ -26,8 +26,8 @@ Creates a new application from a template **in the current working directory**.
 
 ```bash
 cd apps/my_category          # navigate to where you want the project
-tos.py new                   # defaults to base framework
-tos.py new --framework arduino   # Arduino-style project
+tos.py new project               # defaults to base framework
+tos.py new project --framework arduino   # Arduino-style project
 ```
 
 Flow:

@@ -83,7 +83,7 @@ When editing C/C++ files in this repo:
 
 1. Make your changes.
 2. **Check for sensitive information** before committing (see below).
-3. Run the bundled wrapper: `scripts/check_files.sh <changed_files>`
+3. Run the bundled wrapper: `.agents/skills/tuyaopen-code-check/scripts/check_files.sh <changed_files>`
    Or directly: `python tools/check_format.py --debug --files <changed_files>`
 4. If **format errors**: run `clang-format -style=file -i <file>` to auto-fix, then re-check.
 5. If **Chinese character errors**: replace Chinese text with English — this applies to comments and strings too, not just identifiers.

@@ -14,7 +14,7 @@ compatibility:
 
 # TuyaOpen Build
 
-Docs: <https://tuyaopen.ai/zh/docs/quick-start/project-compilation>
+Docs: <https://tuyaopen.io/docs/quick-start/project-compilation>
 
 ## Prerequisites
 

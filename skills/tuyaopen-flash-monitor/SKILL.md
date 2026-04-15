@@ -14,7 +14,7 @@ compatibility:
 
 # TuyaOpen Flash & Monitor
 
-Docs: <https://tuyaopen.ai/zh/docs/quick-start/firmware-burning> | <https://tuyaopen.ai/zh/docs/quick-start/device-debug>
+Docs: <https://tuyaopen.io/docs/quick-start/firmware-burning> | <https://tuyaopen.io/docs/quick-start/device-debug>
 
 ## Prerequisites
 
