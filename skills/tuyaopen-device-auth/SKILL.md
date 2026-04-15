@@ -13,7 +13,7 @@ compatibility:
 
 # TuyaOpen Device Authorization & Provisioning
 
-Docs: <https://tuyaopen.ai/zh/docs/quick-start/device-authorization>
+Docs: <https://tuyaopen.ai/docs/quick-start/equipment-authorization>
 
 ## Authorization Overview
 

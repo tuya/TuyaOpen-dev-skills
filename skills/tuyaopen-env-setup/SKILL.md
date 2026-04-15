@@ -14,7 +14,7 @@ compatibility:
 
 # TuyaOpen Environment Setup
 
-Docs: <https://tuyaopen.ai/zh/docs/quick-start/enviroment-setup>
+Docs: <https://tuyaopen.ai/docs/quick-start/enviroment-setup>
 
 ## System Dependencies (Ubuntu / Debian)
 
@@ -63,7 +63,7 @@ fi
 Run the bundled verification script to check if the environment is ready:
 
 ```bash
-scripts/check_env.sh
+.agents/skills/tuyaopen-env-setup/scripts/check_env.sh
 ```
 
 This checks venv activation, `OPEN_SDK_ROOT`, `tos.py`, git, cmake, and python3 in one pass.
