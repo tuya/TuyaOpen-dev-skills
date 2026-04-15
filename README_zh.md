@@ -73,19 +73,11 @@ Cursor 会自动从以下目录加载技能：
 | `.cursor/skills/` | 项目级 |
 | `~/.cursor/skills/` | 用户级（全局） |
 
-### 方式 A：在 Cursor 中从 GitHub 安装（推荐）
+### 方式 A：告知智能体安装技能（推荐）
 
-无需手动克隆，直接从 GitHub 仓库导入技能：
-
-1. 打开 **Cursor Settings**（Linux/Windows: Ctrl+Shift+J，Mac: Cmd+Shift+J）
-2. 前往 **Rules**
-3. 在 **Project Rules** 部分，点击 **Add Rule**
-4. 选择 **Remote Rule (Github)**
-5. 输入：`https://github.com/tuya/TuyaOpen-dev-skills.git`
-
-![Remote Rule Import](https://images.tuyacn.com/fe-static/docs/img/39fc8328-1853-459d-b21b-199f4784e344.png)
-
-Cursor 会自动拉取并保持技能同步。
+```text
+Install the skill for this project: https://github.com/tuya/TuyaOpen-dev-skills.git
+```
 
 ### 方式 B：复制到 TuyaOpen 项目
 

@@ -73,19 +73,11 @@ Cursor automatically loads skills from the following directories:
 | `.cursor/skills/` | Project |
 | `~/.cursor/skills/` | User (global) |
 
-### Option A: Install from GitHub in Cursor (Recommended)
+### Option A: Instruct the agent to install the skill (Recommended)
 
-Import skills directly from this GitHub repository without cloning:
-
-1. Open **Cursor Settings** (Ctrl+Shift+J on Linux/Windows, Cmd+Shift+J on Mac)
-2. Go to **Rules**
-3. In the **Project Rules** section, click **Add Rule**
-4. Select **Remote Rule (Github)**
-5. Enter: `https://github.com/tuya/TuyaOpen-dev-skills.git`
-
-![Remote Rule Import](https://images.tuyacn.com/fe-static/docs/img/39fc8328-1853-459d-b21b-199f4784e344.png)
-
-Cursor will fetch and keep the skills in sync automatically.
+```text
+Install the skill for this project: https://github.com/tuya/TuyaOpen-dev-skills.git
+```
 
 ### Option B: Copy into your TuyaOpen project
 
