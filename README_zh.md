@@ -164,7 +164,7 @@ TuyaOpen-dev-skills/
 ## 相关资源
 
 - [TuyaOpen](https://github.com/tuya/TuyaOpen) — SDK 主仓库
-- [TuyaOpen 文档](https://tuyaopen.io/docs/quick-start) — 官方文档
+- [TuyaOpen 文档](https://tuyaopen.ai/docs/quick-start) — 官方文档
 - [涂鸦 IoT 平台](https://platform.tuya.com) — 设备管理云平台
 - [Cursor IDE](https://cursor.com) — AI 驱动的代码编辑器
 
