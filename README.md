@@ -73,11 +73,9 @@ Cursor automatically loads skills from the following directories:
 | `.cursor/skills/` | Project |
 | `~/.cursor/skills/` | User (global) |
 
-For skills that include executable scripts, shell wrappers, or repo-relative command examples, use **project-local** `.agents/skills/`. The command examples in this repository assume that path. `.cursor/skills/` and `~/.cursor/skills/` can load `SKILL.md` content into Cursor, but they do **not** provide the stable repo-local filesystem path expected by commands such as `agent_target_tool.py` or the bundled shell scripts.
+### Option A: Install from GitHub in Cursor (Recommended)
 
-### Option A: Import from GitHub in Cursor
-
-Import skills directly from this GitHub repository without cloning. This is convenient for loading `SKILL.md` content into Cursor. If you also want to run the bundled scripts from a terminal, prefer **Option B** or **Option C**.
+Import skills directly from this GitHub repository without cloning:
 
 1. Open **Cursor Settings** (Ctrl+Shift+J on Linux/Windows, Cmd+Shift+J on Mac)
 2. Go to **Rules**
@@ -166,7 +164,7 @@ Each skill follows the [Agent Skills](https://agentskills.io/) standard:
 ## Related Resources
 
 - [TuyaOpen](https://github.com/tuya/TuyaOpen) — Main SDK repository
-- [TuyaOpen Documentation](https://tuyaopen.io/docs/quick-start) — Official docs
+- [TuyaOpen Documentation](https://tuyaopen.ai/docs/quick-start) — Official docs
 - [Tuya IoT Platform](https://platform.tuya.com) — Cloud platform for device management
 - [Cursor IDE](https://cursor.com) — AI-powered code editor
 

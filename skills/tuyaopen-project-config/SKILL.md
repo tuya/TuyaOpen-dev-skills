@@ -14,7 +14,7 @@ compatibility:
 
 # TuyaOpen Project & Config Management
 
-Docs: <https://tuyaopen.io/docs/tos-tools/tos-guide>
+Docs: <https://tuyaopen.ai/docs/tos-tools/tos-guide>
 
 ## Creating a New Project
 

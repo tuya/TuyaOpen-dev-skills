@@ -73,11 +73,9 @@ Cursor 会自动从以下目录加载技能：
 | `.cursor/skills/` | 项目级 |
 | `~/.cursor/skills/` | 用户级（全局） |
 
-对于包含可执行脚本、shell 封装或仓库相对路径命令示例的技能，建议使用 **项目本地** 的 `.agents/skills/`。本仓库里的命令示例默认都基于这个路径。`.cursor/skills/` 和 `~/.cursor/skills/` 适合把 `SKILL.md` 规则加载进 Cursor，但**不能**保证 `agent_target_tool.py` 或随附脚本拥有文档中假定的仓库内固定路径。
+### 方式 A：在 Cursor 中从 GitHub 安装（推荐）
 
-### 方式 A：在 Cursor 中从 GitHub 导入
-
-无需手动克隆，直接从 GitHub 仓库导入技能。它适合把 `SKILL.md` 内容加载进 Cursor；如果还要在终端里运行随附脚本，优先使用 **方式 B** 或 **方式 C**。
+无需手动克隆，直接从 GitHub 仓库导入技能：
 
 1. 打开 **Cursor Settings**（Linux/Windows: Ctrl+Shift+J，Mac: Cmd+Shift+J）
 2. 前往 **Rules**

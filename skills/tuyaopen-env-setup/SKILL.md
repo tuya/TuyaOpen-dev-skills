@@ -14,7 +14,7 @@ compatibility:
 
 # TuyaOpen Environment Setup
 
-Docs: <https://tuyaopen.io/docs/quick-start/enviroment-setup>
+Docs: <https://tuyaopen.ai/docs/quick-start/enviroment-setup>
 
 ## System Dependencies (Ubuntu / Debian)
 
