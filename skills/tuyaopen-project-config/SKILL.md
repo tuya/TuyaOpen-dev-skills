@@ -1,11 +1,11 @@
 ---
 name: tuyaopen-project-config
 description: >-
-  Create new TuyaOpen projects, boards, and platforms, manage build
-  configurations, update platform dependencies, and use tos.py subcommands.
+  Create new TuyaOpen projects and platforms, manage build configurations,
+  update platform dependencies, and use tos.py subcommands.
   Use when the user mentions creating a project, tos.py new, saving or
   choosing a config, tos.py update, or general tos.py usage.
-  创建项目、新建工程、新建开发板、配置管理、保存配置、选择配置、更新依赖。
+  创建项目、新建工程、配置管理、保存配置、选择配置、更新依赖。
 license: Apache-2.0
 compatibility:
   - TuyaOpen environment activated (export.sh)
@@ -119,6 +119,7 @@ Edit `app_default.config` directly — no TTY needed. This is the recommended ap
 <project_name>/
 ├── CMakeLists.txt
 ├── app_default.config
+├── include/          # optional — create if you have shared headers
 └── src/
     └── tuya_app_main.c
 ```

@@ -50,7 +50,7 @@ echo ""
 
 cd "$REPO_ROOT"
 
-if python "$CHECK_SCRIPT" --debug --files "$@"; then
+if "${OPEN_SDK_PYTHON:-python3}" "$CHECK_SCRIPT" --debug --files "$@"; then
     echo ""
     echo "RESULT: All checks PASSED."
     exit 0

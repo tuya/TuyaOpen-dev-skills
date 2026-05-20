@@ -3,8 +3,8 @@ name: tuyaopen-flash-monitor
 description: >-
   Flash firmware to TuyaOpen devices and view serial device logs. Use when the
   user mentions flashing, burning firmware, tos.py flash, viewing device logs,
-  serial monitor, tos.py monitor, or device authorization.
-  固件烧录、刷固件、串口日志、设备日志、设备授权。
+  serial monitor, or tos.py monitor.
+  固件烧录、刷固件、串口日志、设备日志。
 license: Apache-2.0
 compatibility:
   - TuyaOpen environment activated (export.sh)
@@ -67,7 +67,7 @@ Reset the device after starting monitor to capture full boot logs.
 | T5AI | UART1 | 460800 | |
 | ESP32 / ESP32-C3 / ESP32-S3 | UART0 | 115200 | |
 | LN882H | UART1 | 921600 | |
-| BK7231N | UART2 | 115200 | |
+| BK7231X | UART2 | 115200 | |
 
 ### Writing Authorization Codes
 

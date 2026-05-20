@@ -120,8 +120,6 @@ tos.py build        # standard build
 tos.py build -v     # verbose (shows full compiler commands)
 ```
 
-For details on the internal build pipeline and system architecture, see `references/KCONFIG_GUIDE.md`.
-
 ### Build All Configs (testing)
 
 ```bash
