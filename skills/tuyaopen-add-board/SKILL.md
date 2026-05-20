@@ -72,7 +72,7 @@ config BOARD_CONFIG
 
 ### 3. Register in platform Kconfig
 
-Add your board as an option in `boards/<PLATFORM>/Kconfig` so it appears in `config choice`.
+Add your board as an option in `boards/<PLATFORM>/Kconfig` so it appears in `config choice`. Skip this step if you used `tos.py new board` — it does this automatically.
 
 ### 4. Edit board_config.h
 

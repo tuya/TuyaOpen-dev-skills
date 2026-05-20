@@ -109,7 +109,7 @@ When generating or modifying code that involves `tuya_config.h` or similar crede
 
 ## File Header Template
 
-Every `.c` and `.h` file **must** start with a `/**` comment block containing `@file`, `@brief`, and `@copyright`. The copyright tag has a strict format — it must include the current year and "All Rights Reserved":
+Every `.c` and `.h` file **must** start with a `/**` comment block containing `@file`, `@brief`, `@version`, `@date`, and `@copyright`:
 
 ```c
 /**
@@ -117,14 +117,10 @@ Every `.c` and `.h` file **must** start with a `/**` comment block containing `@
  * @brief Brief description in English
  * @version 1.0
  * @date 2025-01-01
- * @copyright Copyright (c) 2021-2026 Tuya Inc. All Rights Reserved
  */
 ```
 
-Copyright year rules enforced by the checker:
-- Single year: must be the current year (e.g. `2026`)
-- Year range: end year must be the current year (e.g. `2021-2026`)
-- Must contain `All Rights Reserved`
+Header **warnings** (suggestions) do not cause failure; only **errors** do. The copyright format and year rules are enforced by `check_format.py` — run the check to see exact requirements.
 
 ## What `.clang-format-ignore` Excludes
 

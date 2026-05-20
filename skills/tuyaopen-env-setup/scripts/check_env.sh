@@ -43,6 +43,7 @@ fi
 check "tos.py reachable" command -v tos.py
 check "git available" git --version
 check "cmake available" cmake --version
+check "ninja available" ninja --version
 check "python3 available" python3 --version
 
 if command -v tos.py > /dev/null 2>&1; then
