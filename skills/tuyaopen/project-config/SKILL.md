@@ -1,5 +1,5 @@
 ---
-name: tuyaopen-project-config
+name: tuyaopen/project-config
 description: >-
   Create new TuyaOpen projects and platforms, manage build configurations,
   update platform dependencies, and use tos.py subcommands.
@@ -8,11 +8,13 @@ description: >-
   创建项目、新建工程、配置管理、保存配置、选择配置、更新依赖。
 license: Apache-2.0
 compatibility:
-  - TuyaOpen environment activated (export.sh)
+  - TuyaOpen environment activated (export.sh / export.ps1 / export.bat)
   - TTY terminal required for interactive commands (tos.py new, config choice/menu/save)
 ---
 
 # TuyaOpen Project & Config Management
+
+> **SDK root:** All paths and commands in this skill are relative to the TuyaOpen SDK root (`$OPEN_SDK_ROOT` on Linux/macOS/PowerShell, `%OPEN_SDK_ROOT%` on Windows CMD). Activate the environment first — see skill `tuyaopen/env-setup`.
 
 Docs: <https://tuyaopen.ai/docs/tos-tools/tos-guide>
 
@@ -52,7 +54,7 @@ my_app/
 
 **After creation — next steps:**
 1. `cd my_app`
-2. Select a config: `tos.py config choice` (interactive), or manually create `app_default.config` (see skill `tuyaopen-build` for Kconfig format).
+2. Select a config: `tos.py config choice` (interactive), or manually create `app_default.config` (see skill `tuyaopen/build` for Kconfig format).
 3. Build: `tos.py build`
 
 A new project has no `app_default.config` — the build system will copy an empty template on first build, but you must configure a platform/board before a meaningful build succeeds.
@@ -68,11 +70,11 @@ Flow:
 4. Automatically registers the board in `boards/<platform>/Kconfig` so it appears in `config choice`.
 5. For ESP32, chip name defaults to `esp32s3`; for other platforms, uses the platform name.
 
-See skill `tuyaopen-add-board` for the full board adaptation guide.
+See skill `tuyaopen/add-board` for the full board adaptation guide.
 
 ## Configuration Management
 
-For detailed Kconfig editing guidance (dependency mechanisms, defconfig format, config pipeline), see skill **`tuyaopen-build`**.
+For detailed Kconfig editing guidance (dependency mechanisms, defconfig format, config pipeline), see skill **`tuyaopen/build`**.
 
 ### `tos.py config choice` (interactive)
 
@@ -95,9 +97,9 @@ Config lookup priority:
 tos.py config menu
 ```
 
-Opens a terminal-based Kconfig editor. **Triggers a full clean first.** Best for fine-tuning options with complex dependencies — the editor resolves `select` / `depends on` automatically. See skill `tuyaopen-build` for the Kconfig Dependency Guide.
+Opens a terminal-based Kconfig editor. **Triggers a full clean first.** Best for fine-tuning options with complex dependencies — the editor resolves `select` / `depends on` automatically. See skill `tuyaopen/build` for the Kconfig Dependency Guide.
 
-### `tos.py config save` (interactive)
+### `tos.py config save` (interactive, requires TTY)
 
 ```bash
 tos.py config save
@@ -107,7 +109,14 @@ Prompts for a name, then copies current `app_default.config` to the project's `c
 
 ### Non-Interactive Config (Agent / CI)
 
-Edit `app_default.config` directly — no TTY needed. This is the recommended approach for automated workflows. See skill `tuyaopen-build` for format details and Kconfig dependency handling.
+Prefer `tos.py config choice -c <name>` when a pre-verified config already exists:
+
+```bash
+tos.py config choice -c TUYA_T5AI_EVB     # from project config/ dir
+tos.py config choice -d -c TUYA_T5AI_EVB  # from boards/ default configs
+```
+
+Or edit `app_default.config` directly for custom configurations — no TTY needed. See skill `tuyaopen/build` for format details and Kconfig dependency handling.
 
 ## Non-Interactive Project Creation (Agent / CI)
 
@@ -234,23 +243,11 @@ Key points:
 ### Step 4: Build and Run
 
 ```bash
-mkdir -p .cache && touch .cache/.dont_prompt_update_platform   # suppress interactive prompts
 cd <project_dir>
+mkdir -p .cache && touch .cache/.dont_prompt_update_platform
 tos.py build
-# LINUX: run the ELF directly
-./dist/<project>_<version>/<project>_<version>.elf
+./dist/<project>_<version>/<project>_<version>.elf   # LINUX only
 ```
-
-### Common TAL APIs for Quick Prototyping
-
-| API | Header | Description |
-|-----|--------|-------------|
-| `tal_log_init(level, bufsize, cb)` | `tal_api.h` | Initialize logging (`tkl_log_output` as callback) |
-| `PR_DEBUG/PR_NOTICE/PR_ERR(fmt, ...)` | `tal_api.h` | Log at different levels |
-| `tal_system_sleep(ms)` | `tal_api.h` | Sleep for N milliseconds |
-| `tal_system_get_random(range)` | `tal_api.h` | Random integer in [0, range) |
-| `tal_system_get_millisecond()` | `tal_api.h` | System uptime in milliseconds |
-| Available macros: | `tuya_kconfig.h` (auto) | `PROJECT_NAME`, `PROJECT_VERSION`, `PLATFORM_BOARD`, `PLATFORM_CHIP`, `OPEN_VERSION` |
 
 ## Updating Dependencies
 
@@ -258,11 +255,11 @@ tos.py build
 tos.py update
 ```
 
-Reads `platform/platform_config.yaml` and switches each platform submodule to its pinned commit. Run after `git pull` or `git checkout` on the main repo.
+Switches each platform submodule to its pinned commit (`$OPEN_SDK_ROOT/platform/platform_config.yaml`). Run after `git pull`.
 
 ## tos.py Command Reference
 
-For the complete tos.py command table (all subcommands, interactive flags, descriptions), see `references/TOS_COMMANDS.md`.
+See `references/TOS_COMMANDS.md`.
 
 ## Troubleshooting
 

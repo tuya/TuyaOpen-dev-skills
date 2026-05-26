@@ -7,15 +7,20 @@
 | `tos.py new project` | **Yes** | Create new app project from template |
 | `tos.py new board` | **Yes** | Create new board BSP |
 | `tos.py new platform` | **Yes** | Scaffold new platform port |
-| `tos.py config choice` | **Yes** | Select a verified config |
+| `tos.py config choice` | **Yes** | Select a verified config (interactive) |
+| `tos.py config choice -c <name>` | No | Select config by name (Agent/CI, non-interactive) |
+| `tos.py config choice -d` | **Yes** | Select from board default configs only |
+| `tos.py config choice -d -c <name>` | No | Select board default config by name (Agent/CI) |
 | `tos.py config menu` | **Yes** | Visual Kconfig editor |
 | `tos.py config save` | **Yes** | Save current config as named preset |
-| `tos.py build` | No | Build current project (see skill `tuyaopen-build`) |
+| `tos.py build` | No | Build current project (see skill `tuyaopen/build`) |
 | `tos.py build -v` | No | Build with verbose output |
 | `tos.py clean` | No | Clean build artifacts (ninja clean) |
 | `tos.py clean -f` | No | Full clean (delete `.build/`) |
-| `tos.py flash` | **Yes** | Flash firmware (see skill `tuyaopen-flash-monitor`) |
-| `tos.py monitor` | **Yes** | View device serial logs (see skill `tuyaopen-flash-monitor`) |
+| `tos.py flash -p <port>` | No | Flash firmware non-interactively (see skill `tuyaopen/dev-loop`) |
+| `tos.py flash` | **Yes** | Flash firmware (prompts for port if not specified) |
+| `tos.py monitor -p <port>` | No | View serial logs non-interactively (see skill `tuyaopen/dev-loop`) |
+| `tos.py monitor` | **Yes** | View serial logs (prompts for port if not specified) |
 | `tos.py update` | No | Sync platform dependencies to pinned commits |
 | `tos.py dev bac` | No | Build all configs (testing) |
 | `tos.py idf <cmd>` | Varies | Pass-through to ESP-IDF `idf.py` (ESP32 only) |

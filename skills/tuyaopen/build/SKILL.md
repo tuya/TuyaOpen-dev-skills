@@ -1,5 +1,5 @@
 ---
-name: tuyaopen-build
+name: tuyaopen/build
 description: >-
   Build and compile TuyaOpen projects, select build configurations, edit
   Kconfig options, clean artifacts, and run Linux ELF binaries. Use when the
@@ -8,7 +8,7 @@ description: >-
   项目编译、构建、编译配置、清理编译、编译错误、menuconfig、Kconfig。
 license: Apache-2.0
 compatibility:
-  - TuyaOpen environment activated (export.sh)
+  - TuyaOpen environment activated (export.sh / export.ps1 / export.bat)
   - cmake >= 3.28, ninja >= 1.6
 ---
 
@@ -16,9 +16,7 @@ compatibility:
 
 Docs: <https://tuyaopen.ai/docs/quick-start/project-compilation>
 
-## Prerequisites
-
-Environment activated (`. ./export.sh`). See skill `tuyaopen-env-setup`.
+> **SDK root:** All paths and commands in this skill are relative to the TuyaOpen SDK root (`$OPEN_SDK_ROOT` on Linux/macOS/PowerShell, `%OPEN_SDK_ROOT%` on Windows CMD). Activate the environment first — see skill `tuyaopen/env-setup`.
 
 ## Project Locations
 
@@ -38,34 +36,32 @@ cd apps/tuya_cloud/switch_demo
 ### Selecting a Verified Config
 
 ```bash
-tos.py config choice
+tos.py config choice                           # interactive — list and pick
+tos.py config choice -c TUYA_T5AI_EVB         # non-interactive — select by name (Agent / CI)
+tos.py config choice -d                        # interactive — board default configs only
+tos.py config choice -d -c TUYA_T5AI_EVB      # non-interactive — from board defaults
 ```
 
-Lists pre-verified configs for the current project. Triggers a full clean. Selected config is written to `app_default.config`.
+All variants trigger a full clean. The selected config is written to `app_default.config`.
 
 Config lookup priority: project `config/` dir > `boards/` global configs.
+
+**`-c` flag (non-interactive, preferred for Agent / CI):**  
+Matches config by filename — `.config` extension is optional (`TUYA_T5AI_EVB` and `TUYA_T5AI_EVB.config` are equivalent).  
+If the name is not found, the command exits with an error and prints the available config names.
 
 ### Fine-Tuning with Menuconfig (requires TTY)
 
 ```bash
-tos.py config menu
+tos.py config menu    # terminal-based Kconfig editor; resolves depends on/select automatically
+tos.py config save    # interactive (requires TTY) — save current config as named preset
 ```
 
-Opens a terminal-based Kconfig editor. **Recommended when modifying options with complex dependencies** — it automatically resolves `depends on` / `select` relationships and prevents invalid combinations.
+Menuconfig keys: arrows or `h`/`j`/`k`/`l`; `?` for help; write to `app_default.config` on exit.
 
-- Navigate: arrow keys or `h`/`j`/`k`/`l` (Windows terminal compat)
-- View option details: press `?` on any item to see its help text, dependencies, and which symbols it selects
-- Save and exit: the result is written to `app_default.config`
+### Writing a Custom Config (Agent / CI)
 
-After customizing, save as a named preset for reuse:
-
-```bash
-tos.py config save    # prompts for a name, saves to project config/ dir
-```
-
-### Non-Interactive Editing (Agent / CI)
-
-Edit `app_default.config` directly. The file uses **Kconfig defconfig format** — you only need to specify values that **differ from defaults**:
+Edit `app_default.config` in the project directory. The file uses **Kconfig defconfig format** — only specify values that **differ from defaults**:
 
 ```
 CONFIG_PROJECT_VERSION="1.0.1"
@@ -95,7 +91,7 @@ Common platform + board config pairs:
 
 ### Config Pipeline
 
-Understanding how config flows into the build:
+Understanding how config flows into the build (all paths relative to the project directory):
 
 ```
 app_default.config          (your edits — defconfig format)
@@ -111,7 +107,7 @@ If a build fails due to config issues, check `.build/cache/using.config` to see 
 
 ## Kconfig Dependency Guide
 
-For detailed Kconfig dependency mechanisms (`select` / `depends on` / `if`), real-world examples (LVGL + touchscreen), board `select` patterns, dependency lookup methods, and agent strategy for config changes, see `references/KCONFIG_GUIDE.md`.
+Detailed `select` / `depends on` / `if` mechanisms and agent strategy: `references/KCONFIG_GUIDE.md`.
 
 ## Build
 
@@ -120,11 +116,19 @@ tos.py build        # standard build
 tos.py build -v     # verbose (shows full compiler commands)
 ```
 
+> **Agent / CI:** Before the first build in a non-interactive session, prevent platform-update prompts:
+> ```bash
+> mkdir -p .cache && touch .cache/.dont_prompt_update_platform
+> ```
+> Create this file once after activating the environment. Without it, `tos.py build` may hang waiting for a `y/n/d` prompt when the platform commit has changed.
+
 ### Build All Configs (testing)
 
 ```bash
-tos.py dev bac      # build-all-configs: builds every config in the project
+tos.py dev bac      # build-all-configs: for each config in the project, full-clean then build
 ```
+
+Each config triggers a full clean before building, so this can take a long time. Useful for verifying all board variants compile cleanly.
 
 ## Clean
 
@@ -136,6 +140,8 @@ tos.py clean -f     # full clean — deletes .build/ entirely
 `config choice` and `config menu` also trigger a full clean automatically.
 
 ## Running (LINUX target)
+
+> Paths below are relative to the **project directory** (where you ran `tos.py build`), not the SDK root.
 
 LINUX platform produces a native ELF binary. Build output is copied to `dist/`:
 
@@ -157,9 +163,9 @@ Example (for a project named `hello_world_linux` version 1.0.0):
 |---------|-------|-----|
 | Slow build on Windows | `MSPCManagerService` interference | Kill the process; add project dir to Windows Security exclusions |
 | Toolchain download fails | Network issue | Retry `tos.py build`; check `platform/` directory |
-| Build fails after config change | Incompatible options | `tos.py clean -f` then re-select config with `tos.py config choice` |
+| Build fails after config change | Incompatible options | `tos.py clean -f` then re-select: `tos.py config choice -c <name>` (non-interactive) or `tos.py config choice` (interactive) |
 | `No rule to make target` | Stale build cache | `tos.py clean -f && tos.py build` |
-| Build hangs with `y/n/d` prompt (Agent/CI) | Platform commit mismatch | `mkdir -p .cache && touch .cache/.dont_prompt_update_platform` after `. ./export.sh`, or `tos.py update` first. **Always create this file in non-interactive workflows.** |
+| Build hangs with `y/n/d` prompt (Agent/CI) | Platform commit mismatch, missing suppress file | Run `mkdir -p .cache && touch .cache/.dont_prompt_update_platform` before building, or `tos.py update` first |
 | Config option silently ignored | Missing `depends on` prerequisite | Check `.build/cache/using.config` to verify; grep Kconfig files for dependency chain |
-| `FATAL_ERROR ... using.config` | No config selected yet | Run `tos.py config choice` to select a config first |
+| `FATAL_ERROR ... using.config` | No config selected yet | Run `tos.py config choice -c <name>` (non-interactive) or `tos.py config choice` (interactive) |
 | Build succeeds but ELF not in `dist/` | Platform linker did not produce expected binary name | Check `.build/bin/` for the raw output; verify project name matches directory name |

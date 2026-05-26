@@ -1,5 +1,5 @@
 ---
-name: tuyaopen-code-check
+name: tuyaopen/code-check
 description: >-
   Check C/C++ code formatting, detect Chinese characters, and validate file
   headers using clang-format and check_format.py. Use when the user mentions
@@ -7,11 +7,13 @@ description: >-
   C/C++ files. 代码格式、格式检查、代码风格、PR检查、代码规范。
 license: Apache-2.0
 compatibility:
-  - clang-format installed (apt-get install clang-format)
-  - Python 3
+  - clang-format installed (Linux: `apt install clang-format`; macOS: `brew install clang-format`; Windows: `choco install llvm` or LLVM release)
+  - Python 3 (venv active)
 ---
 
 # TuyaOpen Code Format Check
+
+> **SDK root:** All `$OPEN_SDK_PYTHON tools/check_format.py` commands must be run from the TuyaOpen SDK root (`$OPEN_SDK_ROOT`). The bundled `check_files.py` script resolves the SDK root automatically via `$OPEN_SDK_ROOT` or by walking upward for `.clang-format`.
 
 ## Overview
 
@@ -29,12 +31,12 @@ Paths listed in `.clang-format-ignore` are excluded (third-party libraries: cJSO
 
 ## Usage
 
-All commands should be run from the **repo root** (where `.clang-format` lives).
+All commands must be run from the **SDK root** (`$OPEN_SDK_ROOT`, where `.clang-format` lives).
 
 ### Check specific files (recommended for Agent use)
 
 ```bash
-python tools/check_format.py --debug --files path/to/file.c path/to/file.h
+$OPEN_SDK_PYTHON tools/check_format.py --debug --files path/to/file.c path/to/file.h
 ```
 
 Supports glob patterns: `--files "src/tal_system/**/*.c"`
@@ -42,13 +44,13 @@ Supports glob patterns: `--files "src/tal_system/**/*.c"`
 ### Check a directory recursively
 
 ```bash
-python tools/check_format.py --debug --dir src/tal_system/
+$OPEN_SDK_PYTHON tools/check_format.py --debug --dir src/tal_system/
 ```
 
 ### Check all files in current directory (debug mode fallback)
 
 ```bash
-python tools/check_format.py --debug
+$OPEN_SDK_PYTHON tools/check_format.py --debug
 ```
 
 When `--debug` is used without `--files` or `--dir`, it scans the current working directory recursively for all C/C++ files.
@@ -58,8 +60,8 @@ When `--debug` is used without `--files` or `--dir`, it scans the current workin
 Checks files modified relative to a base branch (uses `git diff`):
 
 ```bash
-python tools/check_format.py                     # default: --base master
-python tools/check_format.py --base main          # custom base branch
+$OPEN_SDK_PYTHON tools/check_format.py                     # default: --base master
+$OPEN_SDK_PYTHON tools/check_format.py --base main          # custom base branch
 ```
 
 ### Verbose output
@@ -67,13 +69,13 @@ python tools/check_format.py --base main          # custom base branch
 Add `-v` to any mode for detailed information:
 
 ```bash
-python tools/check_format.py --debug --files foo.c -v
+$OPEN_SDK_PYTHON tools/check_format.py --debug --files foo.c -v
 ```
 
 ## Important Notes
 
 - `--files` and `--dir` **require** `--debug` flag — they are ignored in PR mode.
-- The script locates the project root by searching upward for `.clang-format`.
+- The script locates the SDK root by searching upward for `.clang-format`.
 - Exit code: `0` = all checks pass, `1` = errors found.
 - Header **warnings** (suggestions) do not cause failure; only **errors** do.
 
@@ -83,8 +85,8 @@ When editing C/C++ files in this repo:
 
 1. Make your changes.
 2. **Check for sensitive information** before committing (see below).
-3. Run the bundled wrapper: `.agents/skills/tuyaopen-code-check/scripts/check_files.sh <changed_files>`
-   Or directly: `python tools/check_format.py --debug --files <changed_files>`
+3. Run the bundled wrapper: `$OPEN_SDK_PYTHON .agents/skills/tuyaopen/code-check/scripts/check_files.py <changed_files>`
+   Or directly: `$OPEN_SDK_PYTHON tools/check_format.py --debug --files <changed_files>`
 4. If **format errors**: run `clang-format -style=file -i <file>` to auto-fix, then re-check.
 5. If **Chinese character errors**: replace Chinese text with English — this applies to comments and strings too, not just identifiers.
 6. If **header errors**: ensure the file starts with a proper Doxygen header (see template below). Pay attention to the copyright year.
@@ -116,11 +118,12 @@ Every `.c` and `.h` file **must** start with a `/**` comment block containing `@
  * @file filename.c
  * @brief Brief description in English
  * @version 1.0
- * @date 2025-01-01
+ * @date YYYY-MM-DD
+ * @copyright Copyright (c) 2025 Tuya Inc. All Rights Reserved.
  */
 ```
 
-Header **warnings** (suggestions) do not cause failure; only **errors** do. The copyright format and year rules are enforced by `check_format.py` — run the check to see exact requirements.
+`@copyright` format: `Copyright (c) <start_year>[-<end_year>] <holder> All Rights Reserved.` — the year must include the current year (either as start or end year). This is enforced as an **error** by `check_format.py`.
 
 ## What `.clang-format-ignore` Excludes
 
@@ -141,6 +144,4 @@ Do not modify these third-party files for formatting. If you add new third-party
 
 ## Related
 
-- AGENTS.md lint section covers the same commands
-- TuyaOS C Style rules are enforced via workspace-level rules (loaded automatically)
-- The `.clang-format` config at repo root defines the full formatting rules (LLVM-based, 4-space indent, brace after control statement, etc.)
+- The `.clang-format` config at SDK root defines the full formatting rules (LLVM-based, 4-space indent, brace after control statement, etc.)

@@ -22,7 +22,7 @@ TuyaOpen includes a built-in CLI system (`tal_cli`) accessible via the debug UAR
 
 ### Using CLI via Monitor
 
-1. Start monitor: `tos.py monitor` (use the correct baud rate for your chip — see skill `tuyaopen-flash-monitor`)
+1. Start monitor: `tos.py monitor` (use the correct baud rate for your chip — see skill `tuyaopen/dev-loop`)
 2. Type commands at the `tuya> ` prompt
 3. CLI supports tab completion and command history (up/down keys)
 

@@ -1,5 +1,5 @@
 ---
-name: tuyaopen-device-auth
+name: tuyaopen/device-auth
 description: >-
   Configure device authorization credentials (UUID, AuthKey, PID) and network
   provisioning for TuyaOpen devices. Use when the user mentions device auth,
@@ -7,7 +7,7 @@ description: >-
   cloud connection. 设备授权、授权码、配网、UUID、AuthKey、云连接。
 license: Apache-2.0
 compatibility:
-  - TuyaOpen environment activated (export.sh)
+  - TuyaOpen environment activated (export.sh / export.ps1 / export.bat)
   - Tuya IoT Platform account (platform.tuya.com) for credentials
 ---
 
@@ -68,11 +68,11 @@ Optional for AP provisioning with QR code:
 
 ### UUID + AuthKey
 
-Three ways to obtain:
+TuyaOpen-specific authorization codes come in three ways:
 
-1. **Pre-burned modules** — some Tuya modules come with credentials in OTP; no manual config needed.
-2. **Purchase from Tuya platform** — visit <https://platform.tuya.com/purchase/index?type=6> to buy TuyaOpen-specific authorization codes.
-3. **Free developer codes** — Tuya periodically offers free authorization codes for developers.
+1. **Pre-burned modules** — some Tuya modules ship with credentials in OTP; no manual setup needed.
+2. **Purchase from Tuya platform** — <https://platform.tuya.com/purchase/index?type=6>
+3. **Free developer codes** — Tuya periodically offers free authorization codes for developers; check the platform for current offers.
 
 > Important: only **TuyaOpen-specific** authorization codes work. Standard Tuya module authorization codes are **not compatible**.
 
@@ -82,11 +82,23 @@ For CLI-based serial authorization (port selection, baud rates, commands), provi
 
 ### Serial port discovery (agents)
 
-Before interactive auth over UART, resolve the correct COM/tty device:
+Before writing auth credentials over UART, identify the correct port:
 
-- Use skill **`agent-hardware-debug-helper-tools`**: run **`agent_target_tool.py`** from **`.agents/skills/agent-hardware-debug-helper-tools/agent_target_tool.py`** (paths relative to **TuyaOpen repo root**). It finds the repo by locating **`tos.py`**, then **`list-devices`** / **`pick-port`** with **VID `0x1a86`** / **PID `0x55d2`** for the default T5 USB–UART (dual-serial boards expose two interfaces — flash/auth often uses the **lower** enumerated port, monitor/log the **higher**; see **`tuyaopen-flash-monitor`**).
-- Pass the chosen port to **`tos.py monitor`** / tyutool flows as documented in provisioning, or use **`agent_target_tool.py monitor --project-dir <app>`** for a consistent wrapper.
-- To capture logs during provisioning without blocking the agent, use **`service start --detach`**, **`service tail`**, and **`logs latest`**; use **`debug-session run`** when a **clean reboot log** is needed first.
+1. List available ports:
+   ```bash
+   # Linux / macOS
+   ls /dev/ttyACM* /dev/ttyUSB* 2>/dev/null
+   # Windows PowerShell
+   [System.IO.Ports.SerialPort]::GetPortNames()
+   ```
+2. For T5/T5AI boards (WCH dual-serial, VID `0x1a86` PID `0x55d2`): the **lower** enumerated port is typically used for flash/auth; the **higher** port for monitor/log. This is not guaranteed — swap if the auth command fails.
+3. Use skill `tuyaopen/debug-helper` to capture device logs in the background during the auth flow:
+   ```bash
+   $OPEN_SDK_PYTHON .agents/skills/tuyaopen/debug-helper/scripts/monitor_helper.py start -p <monitor-port>
+   # ... run auth on auth port ...
+   $OPEN_SDK_PYTHON .agents/skills/tuyaopen/debug-helper/scripts/monitor_helper.py tail -n 100
+   $OPEN_SDK_PYTHON .agents/skills/tuyaopen/debug-helper/scripts/monitor_helper.py stop
+   ```
 
 ## Agent Strategy
 

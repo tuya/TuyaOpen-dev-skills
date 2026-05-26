@@ -1,5 +1,5 @@
 ---
-name: tuyaopen-add-board
+name: tuyaopen/add-board
 description: >-
   Add new board (BSP) support to TuyaOpen, including board directory structure,
   Kconfig, drivers, and config files. Use when the user mentions adding a
@@ -7,13 +7,15 @@ description: >-
   board. 添加开发板、板级适配、新增BSP、硬件适配。
 license: Apache-2.0
 compatibility:
-  - TuyaOpen environment activated (export.sh)
+  - TuyaOpen environment activated (export.sh / export.ps1 / export.bat)
   - Supported platform (T5AI, ESP32, LINUX, T2, T3, LN882H, BK7231X)
 ---
 
 # TuyaOpen: Adding a New Board
 
-Reference: `boards/add_new_board.md`
+> **SDK root:** All paths and commands in this skill are relative to the TuyaOpen SDK root. After activating the environment, the SDK root is available as `$OPEN_SDK_ROOT` (Linux/macOS/PowerShell) or `%OPEN_SDK_ROOT%` (Windows CMD). Navigate there with `cd $OPEN_SDK_ROOT` before running any commands below.
+
+Reference: `$OPEN_SDK_ROOT/boards/add_new_board.md`
 
 ## Supported Platforms
 
@@ -100,7 +102,8 @@ cp apps/tuya.ai/your_chat_bot/config/TUYA_T5AI_EVB.config \
 
 ```bash
 cd apps/tuya.ai/your_chat_bot    # or your target project
-tos.py config choice              # select your new board
+tos.py config choice -c MY_NEW_BOARD   # non-interactive (Agent/CI)
+# or: tos.py config choice             # interactive selection
 tos.py build
 ```
 
