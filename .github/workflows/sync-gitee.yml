@@ -1,0 +1,27 @@
+name: Sync to Gitee
+
+on:
+  push:
+    branches: ['**']
+    tags: ['**']
+  delete:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push to Gitee
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+        run: |
+          AUTH="Authorization: Basic $(printf 'flyingcys:%s' "$GITEE_TOKEN" | base64 -w 0)"
+          REMOTE="https://gitee.com/tuya-open/TuyaOpen-dev-skills.git"
+          echo "→ Syncing branches to Gitee…"
+          git -c "http.https://gitee.com/.extraheader=$AUTH" push "$REMOTE" --all --force
+          echo "→ Syncing tags to Gitee…"
+          git -c "http.https://gitee.com/.extraheader=$AUTH" push "$REMOTE" --tags --force
+          echo "✓ Gitee sync complete"
