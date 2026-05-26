@@ -23,15 +23,14 @@ Skills 是结构化的知识文件（`SKILL.md`），为 AI 编程助手提供�
 
 | 技能 | 目录 | 说明 |
 |------|------|------|
-| **环境搭建** | [`tuyaopen-env-setup`](skills/tuyaopen-env-setup/) | 安装依赖、激活 `export.sh`、验证工具链 |
-| **项目编译** | [`tuyaopen-build`](skills/tuyaopen-build/) | 编译项目、配置 Kconfig 选项、解析依赖链 |
-| **项目与配置管理** | [`tuyaopen-project-config`](skills/tuyaopen-project-config/) | 创建新项目/开发板/平台、管理编译配置 |
-| **代码检查** | [`tuyaopen-code-check`](skills/tuyaopen-code-check/) | 格式校验（clang-format）、文件头检查、禁止中文字符 |
-| **烧录与监控** | [`tuyaopen-flash-monitor`](skills/tuyaopen-flash-monitor/) | 烧录固件、查看串口日志、处理双串口芯片 |
-| **新增开发板** | [`tuyaopen-add-board`](skills/tuyaopen-add-board/) | 添加开发板 BSP：Kconfig、驱动、引脚配置、层级规则 |
-| **开发闭环** | [`tuyaopen-dev-loop`](skills/tuyaopen-dev-loop/) | 构建-烧录-监控-分析的迭代循环、错误码查询 |
-| **设备授权** | [`tuyaopen-device-auth`](skills/tuyaopen-device-auth/) | 配置 UUID/AuthKey/PID、串口授权、网络配网 |
-| **Agent 硬件调试助手** | [`agent-hardware-debug-helper-tools`](skills/agent-hardware-debug-helper-tools/) | `agent_target_tool.py`：USB 枚举、后台日志、可选 UART CLI（固件支持时）、`tos.py` 封装 |
+| **环境搭建** | [`tuyaopen/env-setup`](skills/tuyaopen/env-setup/) | 安装依赖、激活环境（Linux/macOS/Windows） |
+| **项目编译** | [`tuyaopen/build`](skills/tuyaopen/build/) | 编译项目、配置 Kconfig 选项 |
+| **项目与配置管理** | [`tuyaopen/project-config`](skills/tuyaopen/project-config/) | 创建新项目、管理编译配置 |
+| **代码检查** | [`tuyaopen/code-check`](skills/tuyaopen/code-check/) | 格式校验、文件头检查、禁止中文字符 |
+| **新增开发板** | [`tuyaopen/add-board`](skills/tuyaopen/add-board/) | 添加开发板 BSP：Kconfig、驱动、引脚配置 |
+| **开发闭环** | [`tuyaopen/dev-loop`](skills/tuyaopen/dev-loop/) | 构建→烧录→监控→分析的迭代循环 |
+| **设备授权** | [`tuyaopen/device-auth`](skills/tuyaopen/device-auth/) | 将 UUID/AuthKey/PID 写入设备（源代码或串口 KV flash） |
+| **调试助手** | [`tuyaopen/debug-helper`](skills/tuyaopen/debug-helper/) | 非阻塞后台串口日志捕获，用于智能体 |
 
 ## 开发流程
 
@@ -81,12 +80,12 @@ Install the skill for this project: https://github.com/tuya/TuyaOpen-dev-skills.
 
 ### 方式 B：复制到 TuyaOpen 项目
 
-将 `skills/` 目录复制到 TuyaOpen 项目的 `.agents/skills/` 下：
+将 `skills/tuyaopen` 目录复制到 TuyaOpen 项目的 `.agents/skills/` 下：
 
 ```bash
 git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 mkdir -p /path/to/TuyaOpen/.agents/skills
-cp -r TuyaOpen-dev-skills/skills/* /path/to/TuyaOpen/.agents/skills/
+cp -r TuyaOpen-dev-skills/skills/tuyaopen /path/to/TuyaOpen/.agents/skills/tuyaopen
 ```
 
 ### 方式 C：符号链接
@@ -96,7 +95,7 @@ cp -r TuyaOpen-dev-skills/skills/* /path/to/TuyaOpen/.agents/skills/
 ```bash
 git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 mkdir -p /path/to/TuyaOpen/.agents
-ln -s /path/to/TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills
+ln -s /path/to/TuyaOpen-dev-skills/skills/tuyaopen/ /path/to/TuyaOpen/.agents/skills/tuyaopen
 ```
 
 ### 方式 D：按需选择
@@ -104,9 +103,9 @@ ln -s /path/to/TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills
 只复制你需要的技能：
 
 ```bash
-mkdir -p /path/to/TuyaOpen/.agents/skills/
-cp -r TuyaOpen-dev-skills/skills/tuyaopen-build/ /path/to/TuyaOpen/.agents/skills/
-cp -r TuyaOpen-dev-skills/skills/tuyaopen-env-setup/ /path/to/TuyaOpen/.agents/skills/
+mkdir -p /path/to/TuyaOpen/.agents/skills/tuyaopen
+cp -r TuyaOpen-dev-skills/skills/tuyaopen/build/ /path/to/TuyaOpen/.agents/skills/tuyaopen/
+cp -r TuyaOpen-dev-skills/skills/tuyaopen/env-setup/ /path/to/TuyaOpen/.agents/skills/tuyaopen/
 ```
 
 ## 项目结构
@@ -117,35 +116,15 @@ TuyaOpen-dev-skills/
 ├── README_zh.md
 ├── LICENSE
 └── skills/
-    ├── tuyaopen-env-setup/
-    │   ├── SKILL.md
-    │   └── scripts/check_env.sh
-    ├── tuyaopen-build/
-    │   ├── SKILL.md
-    │   └── references/KCONFIG_GUIDE.md
-    ├── tuyaopen-project-config/
-    │   ├── SKILL.md
-    │   └── references/TOS_COMMANDS.md
-    ├── tuyaopen-code-check/
-    │   ├── SKILL.md
-    │   └── scripts/check_files.sh
-    ├── tuyaopen-flash-monitor/
-    │   └── SKILL.md
-    ├── tuyaopen-add-board/
-    │   ├── SKILL.md
-    │   └── references/BOARD_LAYERS.md
-    ├── tuyaopen-dev-loop/
-    │   ├── SKILL.md
-    │   ├── scripts/build_run_linux.sh
-    │   └── references/ERROR_CODES.md
-    ├── tuyaopen-device-auth/
-    │   ├── SKILL.md
-    │   └── references/PROVISIONING.md
-    └── agent-hardware-debug-helper-tools/
-        ├── SKILL.md
-        ├── agent_target_tool.py
-        ├── agent_target_tool_requirements.txt
-        └── tests/test_agent_target_tool.py
+    └── tuyaopen/
+        ├── env-setup/        SKILL.md + scripts/{check_env.sh,.bat,.ps1}
+        ├── build/            SKILL.md + references/KCONFIG_GUIDE.md
+        ├── project-config/   SKILL.md + references/TOS_COMMANDS.md
+        ├── code-check/       SKILL.md + scripts/check_files.py
+        ├── add-board/        SKILL.md + references/BOARD_LAYERS.md
+        ├── dev-loop/         SKILL.md + scripts/build_run.py + references/ERROR_CODES.md
+        ├── device-auth/      SKILL.md + references/PROVISIONING.md
+        └── debug-helper/     SKILL.md + scripts/monitor_helper.py
 ```
 
 每个技能遵循 [Agent Skills](https://agentskills.io/) 开放标准：

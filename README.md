@@ -23,15 +23,14 @@ Skills are structured knowledge files (`SKILL.md`) that give AI coding assistant
 
 | Skill | Directory | Description |
 |-------|-----------|-------------|
-| **Environment Setup** | [`tuyaopen-env-setup`](skills/tuyaopen-env-setup/) | Install dependencies, activate `export.sh`, verify toolchain |
-| **Build** | [`tuyaopen-build`](skills/tuyaopen-build/) | Compile projects, configure Kconfig options, resolve dependency chains |
-| **Project & Config** | [`tuyaopen-project-config`](skills/tuyaopen-project-config/) | Create new projects/boards/platforms, manage build configurations |
-| **Code Check** | [`tuyaopen-code-check`](skills/tuyaopen-code-check/) | Validate formatting (clang-format), file headers, no Chinese characters |
-| **Flash & Monitor** | [`tuyaopen-flash-monitor`](skills/tuyaopen-flash-monitor/) | Flash firmware, view serial logs, handle dual-port chips |
-| **Add Board** | [`tuyaopen-add-board`](skills/tuyaopen-add-board/) | Add new board BSP: Kconfig, drivers, pin config, layer rules |
-| **Dev Loop** | [`tuyaopen-dev-loop`](skills/tuyaopen-dev-loop/) | Build-flash-monitor-analyze iteration cycle, error code lookup |
-| **Device Auth** | [`tuyaopen-device-auth`](skills/tuyaopen-device-auth/) | Configure UUID/AuthKey/PID, serial authorization, network provisioning |
-| **Agent hardware debug helper** | [`agent-hardware-debug-helper-tools`](skills/agent-hardware-debug-helper-tools/) | `agent_target_tool.py`: USB discovery, background logging, optional UART CLI (if firmware exposes it), `tos.py` wrappers |
+| **Environment Setup** | [`tuyaopen/env-setup`](skills/tuyaopen/env-setup/) | Install dependencies, activate environment (Linux/macOS/Windows) |
+| **Build** | [`tuyaopen/build`](skills/tuyaopen/build/) | Compile projects, configure Kconfig options |
+| **Project & Config** | [`tuyaopen/project-config`](skills/tuyaopen/project-config/) | Create new projects, manage build configurations |
+| **Code Check** | [`tuyaopen/code-check`](skills/tuyaopen/code-check/) | Validate formatting, file headers, no Chinese characters |
+| **Add Board** | [`tuyaopen/add-board`](skills/tuyaopen/add-board/) | Add new board BSP: Kconfig, drivers, pin config |
+| **Dev Loop** | [`tuyaopen/dev-loop`](skills/tuyaopen/dev-loop/) | Build→flash→monitor→analyze iteration cycle |
+| **Device Auth** | [`tuyaopen/device-auth`](skills/tuyaopen/device-auth/) | Write UUID/AuthKey/PID to device (source code or serial KV flash) |
+| **Debug Helper** | [`tuyaopen/debug-helper`](skills/tuyaopen/debug-helper/) | Non-blocking background serial log capture for agents |
 
 ## Development Workflow
 
@@ -81,12 +80,12 @@ Install the skill for this project: https://github.com/tuya/TuyaOpen-dev-skills.
 
 ### Option B: Copy into your TuyaOpen project
 
-Copy the `skills/` directory into your TuyaOpen project as `.agents/skills/`:
+Copy the `skills/tuyaopen` directory into your TuyaOpen project as `.agents/skills/`:
 
 ```bash
 git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 mkdir -p /path/to/TuyaOpen/.agents/skills
-cp -r TuyaOpen-dev-skills/skills/* /path/to/TuyaOpen/.agents/skills/
+cp -r TuyaOpen-dev-skills/skills/tuyaopen /path/to/TuyaOpen/.agents/skills/tuyaopen
 ```
 
 ### Option C: Symlink
@@ -96,7 +95,7 @@ Create a symbolic link so skills stay in sync with this repo:
 ```bash
 git clone https://github.com/tuya/TuyaOpen-dev-skills.git
 mkdir -p /path/to/TuyaOpen/.agents
-ln -s /path/to/TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills
+ln -s /path/to/TuyaOpen-dev-skills/skills/tuyaopen/ /path/to/TuyaOpen/.agents/skills/tuyaopen
 ```
 
 ### Option D: Pick individual skills
@@ -104,9 +103,9 @@ ln -s /path/to/TuyaOpen-dev-skills/skills/ /path/to/TuyaOpen/.agents/skills
 Copy only the skills you need:
 
 ```bash
-mkdir -p /path/to/TuyaOpen/.agents/skills/
-cp -r TuyaOpen-dev-skills/skills/tuyaopen-build/ /path/to/TuyaOpen/.agents/skills/
-cp -r TuyaOpen-dev-skills/skills/tuyaopen-env-setup/ /path/to/TuyaOpen/.agents/skills/
+mkdir -p /path/to/TuyaOpen/.agents/skills/tuyaopen
+cp -r TuyaOpen-dev-skills/skills/tuyaopen/build/ /path/to/TuyaOpen/.agents/skills/tuyaopen/
+cp -r TuyaOpen-dev-skills/skills/tuyaopen/env-setup/ /path/to/TuyaOpen/.agents/skills/tuyaopen/
 ```
 
 ## Project Structure
@@ -117,35 +116,15 @@ TuyaOpen-dev-skills/
 ├── README_zh.md
 ├── LICENSE
 └── skills/
-    ├── tuyaopen-env-setup/
-    │   ├── SKILL.md
-    │   └── scripts/check_env.sh
-    ├── tuyaopen-build/
-    │   ├── SKILL.md
-    │   └── references/KCONFIG_GUIDE.md
-    ├── tuyaopen-project-config/
-    │   ├── SKILL.md
-    │   └── references/TOS_COMMANDS.md
-    ├── tuyaopen-code-check/
-    │   ├── SKILL.md
-    │   └── scripts/check_files.sh
-    ├── tuyaopen-flash-monitor/
-    │   └── SKILL.md
-    ├── tuyaopen-add-board/
-    │   ├── SKILL.md
-    │   └── references/BOARD_LAYERS.md
-    ├── tuyaopen-dev-loop/
-    │   ├── SKILL.md
-    │   ├── scripts/build_run_linux.sh
-    │   └── references/ERROR_CODES.md
-    ├── tuyaopen-device-auth/
-    │   ├── SKILL.md
-    │   └── references/PROVISIONING.md
-    └── agent-hardware-debug-helper-tools/
-        ├── SKILL.md
-        ├── agent_target_tool.py
-        ├── agent_target_tool_requirements.txt
-        └── tests/test_agent_target_tool.py
+    └── tuyaopen/
+        ├── env-setup/        SKILL.md + scripts/{check_env.sh,.bat,.ps1}
+        ├── build/            SKILL.md + references/KCONFIG_GUIDE.md
+        ├── project-config/   SKILL.md + references/TOS_COMMANDS.md
+        ├── code-check/       SKILL.md + scripts/check_files.py
+        ├── add-board/        SKILL.md + references/BOARD_LAYERS.md
+        ├── dev-loop/         SKILL.md + scripts/build_run.py + references/ERROR_CODES.md
+        ├── device-auth/      SKILL.md + references/PROVISIONING.md
+        └── debug-helper/     SKILL.md + scripts/monitor_helper.py
 ```
 
 Each skill follows the [Agent Skills](https://agentskills.io/) standard:
