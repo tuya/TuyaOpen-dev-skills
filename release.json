@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "version": "0.0.1",
+  "tag": "v0.0.1",
+  "publishedAt": "2026-05-27T03:40:12Z",
+  "package": {
+    "github": "https://github.com/tuya/TuyaOpen-dev-skills/releases/download/v0.0.1/TuyaOpen-dev-skills.tar.gz",
+    "gitee": "https://gitee.com/tuya-open/TuyaOpen-dev-skills/releases/download/v0.0.1/TuyaOpen-dev-skills.tar.gz",
+    "sha256": "3215fb84500a868bc16c08280a2b59daece27f0d1c49ad88fe3b10eccbdedb09",
+    "size": 27529
+  }
+}
