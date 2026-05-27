@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write   # upload assets + commit back release.json
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set version vars
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          VERSION="${TAG#v}"
+          echo "TAG=$TAG"         >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "→ Building release $TAG (version $VERSION)"
+
+      - name: Stage package contents
+        run: |
+          mkdir -p staging
+          cp -r skills staging/
+          # Remove Python bytecode cache
+          find staging -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
+          find staging -name "*.pyc" -delete 2>/dev/null || true
+          FILE_COUNT="$(find staging -type f | wc -l)"
+          echo "→ Staged $FILE_COUNT files"
+
+      - name: Create tarball
+        run: |
+          tar -czf TuyaOpen-dev-skills.tar.gz -C staging .
+          SHA256="$(sha256sum TuyaOpen-dev-skills.tar.gz | awk '{print $1}')"
+          SIZE="$(wc -c < TuyaOpen-dev-skills.tar.gz | tr -d ' ')"
+          echo "SHA256=$SHA256" >> "$GITHUB_ENV"
+          echo "SIZE=$SIZE"     >> "$GITHUB_ENV"
+          echo "→ TuyaOpen-dev-skills.tar.gz — ${SIZE} bytes, sha256=${SHA256}"
+
+      - name: Generate release.json
+        run: |
+          python3 - <<'EOF'
+          import json, os
+          tag     = os.environ["TAG"]
+          version = os.environ["VERSION"]
+          sha256  = os.environ["SHA256"]
+          size    = int(os.environ["SIZE"])
+          repo_gh = "tuya/TuyaOpen-dev-skills"
+          repo_ge = "tuya-open/TuyaOpen-dev-skills"
+          manifest = {
+            "schemaVersion": 1,
+            "version": version,
+            "tag": tag,
+            "publishedAt": __import__("datetime").datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "package": {
+              "github": f"https://github.com/{repo_gh}/releases/download/{tag}/TuyaOpen-dev-skills.tar.gz",
+              "gitee":  f"https://gitee.com/{repo_ge}/releases/download/{tag}/TuyaOpen-dev-skills.tar.gz",
+              "sha256": sha256,
+              "size":   size,
+            },
+          }
+          json.dump(manifest, open("release.json", "w"), indent=2)
+          print("→ release.json generated")
+          print(json.dumps(manifest, indent=2))
+          EOF
+
+      - name: Upload GitHub Release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "→ Uploading assets to GitHub Release $TAG…"
+          gh release upload "$TAG" TuyaOpen-dev-skills.tar.gz release.json --clobber
+          echo "✓ GitHub Release assets uploaded"
+
+      - name: Commit release.json to master
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          cp release.json /tmp/release.json
+          git fetch origin master
+          git checkout master
+          cp /tmp/release.json release.json
+          git add release.json
+          if git diff --cached --quiet; then
+            echo "→ release.json unchanged, skip commit"
+          else
+            git commit -m "chore(release): update release.json to $VERSION [skip ci]"
+            git push origin master
+            echo "✓ release.json committed to master"
+          fi
+
+      - name: Sync versioned Release to Gitee
+        continue-on-error: true
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_REPO: tuya-open/TuyaOpen-dev-skills
+          TAG: ${{ env.TAG }}
+          GITEE_ASSETS_DIR: ./gitee-assets
+          GITEE_TARGET_COMMITISH: master
+        run: |
+          echo "→ Syncing versioned release ($TAG) to Gitee…"
+          mkdir -p gitee-assets
+          cp TuyaOpen-dev-skills.tar.gz release.json gitee-assets/
+          bash scripts/sync-gitee-release.sh
+
+      - name: Sync latest Release to Gitee
+        continue-on-error: true
+        env:
+          GITEE_TOKEN: ${{ secrets.GITEE_TOKEN }}
+          GITEE_REPO: tuya-open/TuyaOpen-dev-skills
+          TAG: latest
+          GITEE_ASSETS_DIR: ./gitee-latest-assets
+          GITEE_TARGET_COMMITISH: master
+        run: |
+          echo "→ Updating Gitee 'latest' release (discovery entry)…"
+          mkdir -p gitee-latest-assets
+          cp release.json gitee-latest-assets/
+          bash scripts/sync-gitee-release.sh
+
+      - name: Summary
+        run: |
+          echo "### Release ${{ env.TAG }} published successfully" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Item | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Version | \`${{ env.VERSION }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Package size | ${{ env.SIZE }} bytes |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| SHA-256 | \`${{ env.SHA256 }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| GitHub asset | [TuyaOpen-dev-skills.tar.gz](https://github.com/tuya/TuyaOpen-dev-skills/releases/download/${{ env.TAG }}/TuyaOpen-dev-skills.tar.gz) |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Gitee discovery | [release.json](https://gitee.com/tuya-open/TuyaOpen-dev-skills/releases/download/latest/release.json) |" >> "$GITHUB_STEP_SUMMARY"
