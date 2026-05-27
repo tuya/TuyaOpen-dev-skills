@@ -5,7 +5,7 @@ on:
     types: [published]
 
 permissions:
-  contents: write   # upload assets + commit back release.json
+  contents: write
 
 jobs:
   package:
@@ -25,8 +25,8 @@ jobs:
 
       - name: Stage package contents
         run: |
-          mkdir -p staging
-          cp -r skills staging/
+          mkdir -p staging/TuyaOpen-dev-skills
+          cp -r skills staging/TuyaOpen-dev-skills/
           # Remove Python bytecode cache
           find staging -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true
           find staging -name "*.pyc" -delete 2>/dev/null || true
@@ -35,7 +35,7 @@ jobs:
 
       - name: Create tarball
         run: |
-          tar -czf TuyaOpen-dev-skills.tar.gz -C staging .
+          tar -czf TuyaOpen-dev-skills.tar.gz -C staging TuyaOpen-dev-skills
           SHA256="$(sha256sum TuyaOpen-dev-skills.tar.gz | awk '{print $1}')"
           SIZE="$(wc -c < TuyaOpen-dev-skills.tar.gz | tr -d ' ')"
           echo "SHA256=$SHA256" >> "$GITHUB_ENV"
