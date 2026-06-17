@@ -43,6 +43,16 @@ def main():
         print(f"[ERROR] check_format.py not found at {check_script}")
         sys.exit(1)
 
+    repo_abs = os.path.realpath(repo_root)
+    for f in files:
+        if os.path.isabs(f):
+            candidate = os.path.realpath(f)
+        else:
+            candidate = os.path.realpath(os.path.join(repo_abs, f))
+        if not (candidate == repo_abs or candidate.startswith(repo_abs + os.sep)):
+            print(f"[ERROR] File path outside repo root: {f}")
+            sys.exit(1)
+
     python = os.environ.get("OPEN_SDK_PYTHON", sys.executable)
 
     print("=== Code Format Check ===")

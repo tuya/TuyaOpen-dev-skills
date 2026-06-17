@@ -115,8 +115,22 @@ def _is_running(pid):
             return False
 
 
+def _is_monitor_process(pid):
+    """Verify PID belongs to a tos.py monitor process to avoid killing unrelated processes."""
+    if sys.platform == "win32":
+        return True  # tasklist presence check in _is_running is sufficient on Windows
+    try:
+        with open(f"/proc/{pid}/cmdline", "rb") as f:
+            cmdline = f.read().replace(b"\x00", b" ").decode("utf-8", errors="replace")
+        return "tos.py" in cmdline and "monitor" in cmdline
+    except (FileNotFoundError, PermissionError, OSError):
+        return False
+
+
 def _stop_pid(pid):
     if not _is_running(pid):
+        return
+    if not _is_monitor_process(pid):
         return
     try:
         if sys.platform == "win32":
@@ -139,6 +153,12 @@ def cmd_start(port, log_file, as_json):
     if not log_file:
         ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         log_file = os.path.join(SESSION_DIR, f"{ts}.log")
+    else:
+        abs_log = os.path.abspath(log_file)
+        abs_session = os.path.abspath(SESSION_DIR)
+        if not abs_log.startswith(abs_session + os.sep):
+            _out({"ok": False, "error": "Log file must be within .target_logging/ directory"}, as_json)
+            sys.exit(1)
 
     cmd = [_python_exe(), os.path.join(_ROOT, "tos.py"), "monitor", "-p", port, "-l", log_file]
     kwargs = {}

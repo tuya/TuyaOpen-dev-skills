@@ -59,6 +59,7 @@ def main():
         sys.exit(1)
 
     print("--- Building ---")
+    build_start = datetime.datetime.now().timestamp()
     ret = subprocess.run([_python_exe(), _tos_py(), "build"], check=False)
     if ret.returncode != 0:
         print("\nRESULT: Build FAILED.")
@@ -67,6 +68,10 @@ def main():
     binary = find_binary()
     if not binary:
         print("[ERROR] No executable found in dist/ or .build/bin/")
+        sys.exit(1)
+
+    if os.path.getmtime(binary) < build_start:
+        print(f"[ERROR] Binary '{binary}' predates this build — possible stale or injected file.")
         sys.exit(1)
 
     log_file = os.path.join(_log_dir(), f"device_{datetime.datetime.now():%Y%m%d_%H%M%S}.log")
