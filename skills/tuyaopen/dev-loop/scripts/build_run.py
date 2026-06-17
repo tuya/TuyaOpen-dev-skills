@@ -70,7 +70,7 @@ def main():
         print("[ERROR] No executable found in dist/ or .build/bin/")
         sys.exit(1)
 
-    if os.path.getmtime(binary) < build_start:
+    if os.path.getmtime(binary) < build_start - 1.0:
         print(f"[ERROR] Binary '{binary}' predates this build — possible stale or injected file.")
         sys.exit(1)
 
