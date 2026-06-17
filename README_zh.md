@@ -139,7 +139,6 @@ TuyaOpen-dev-skills/
 - [TuyaOpen](https://github.com/tuya/TuyaOpen) — SDK 主仓库
 - [TuyaOpen 文档](https://tuyaopen.ai/docs/quick-start) — 官方文档
 - [涂鸦 IoT 平台](https://platform.tuya.com) — 设备管理云平台
-- [Claude Code](https://claude.ai/code) — AI 编程助手（主要支持的 IDE）
 - [Cursor IDE](https://cursor.com) — AI 驱动的代码编辑器
 
 ## 参与贡献
