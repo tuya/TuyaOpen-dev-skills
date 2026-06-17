@@ -95,6 +95,10 @@ jobs:
             git push origin master
             echo "✓ release.json committed to master"
           fi
+          # Move the tag to the new master HEAD so the tag's release.json is current
+          git tag -f "$TAG" HEAD
+          git push origin "refs/tags/$TAG" --force
+          echo "✓ tag $TAG moved to master HEAD (release.json now current)"
 
       - name: Sync versioned Release to Gitee
         continue-on-error: true
