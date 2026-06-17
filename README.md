@@ -139,7 +139,6 @@ Each skill follows the [Agent Skills](https://agentskills.io/) standard:
 - [TuyaOpen](https://github.com/tuya/TuyaOpen) — Main SDK repository
 - [TuyaOpen Documentation](https://tuyaopen.ai/docs/quick-start) — Official docs
 - [Tuya IoT Platform](https://platform.tuya.com) — Cloud platform for device management
-- [Claude Code](https://claude.ai/code) — AI coding agent (primary supported IDE)
 - [Cursor IDE](https://cursor.com) — AI-powered code editor
 
 ## Contributing
