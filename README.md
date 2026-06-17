@@ -7,7 +7,7 @@
 
 ---
 
-AI-powered development skills for building [TuyaOpen](https://github.com/tuya/TuyaOpen) hardware projects faster with [Cursor IDE](https://cursor.com). Each skill teaches the AI assistant how to handle a specific part of the TuyaOpen development workflow — from environment setup to device debugging.
+AI-powered development skills for building [TuyaOpen](https://github.com/tuya/TuyaOpen) hardware projects faster with [Claude Code](https://claude.ai/code), [Cursor IDE](https://cursor.com), and other agent-based AI assistants. Each skill teaches the AI assistant how to handle a specific part of the TuyaOpen development workflow — from environment setup to device debugging.
 
 ## What Are Skills?
 
@@ -18,6 +18,8 @@ Skills are structured knowledge files (`SKILL.md`) that give AI coding assistant
 - Navigate Kconfig dependencies and board configurations
 - Diagnose device errors from serial logs
 - Follow TuyaOpen coding standards and security practices
+
+> **IDE support:** Skills follow the [Agent Skills](https://agentskills.io/) open standard and load automatically in Claude Code (TuyaOpen IDE), Cursor, and any compatible AI assistant.
 
 ## Skill List
 
@@ -137,6 +139,7 @@ Each skill follows the [Agent Skills](https://agentskills.io/) standard:
 - [TuyaOpen](https://github.com/tuya/TuyaOpen) — Main SDK repository
 - [TuyaOpen Documentation](https://tuyaopen.ai/docs/quick-start) — Official docs
 - [Tuya IoT Platform](https://platform.tuya.com) — Cloud platform for device management
+- [Claude Code](https://claude.ai/code) — AI coding agent (primary supported IDE)
 - [Cursor IDE](https://cursor.com) — AI-powered code editor
 
 ## Contributing

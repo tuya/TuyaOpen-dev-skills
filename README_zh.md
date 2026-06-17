@@ -7,7 +7,7 @@
 
 ---
 
-面向 [TuyaOpen](https://github.com/tuya/TuyaOpen) 硬件开发的 AI 开发技能包，配合 [Cursor IDE](https://cursor.com) 使用，让 AI 助手深度理解 TuyaOpen 开发流程，加速从环境搭建到设备调试的全过程。
+面向 [TuyaOpen](https://github.com/tuya/TuyaOpen) 硬件开发的 AI 开发技能包，配合 [Claude Code](https://claude.ai/code)、[Cursor IDE](https://cursor.com) 等 AI 编程助手使用，让 AI 助手深度理解 TuyaOpen 开发流程，加速从环境搭建到设备调试的全过程。
 
 ## 什么是 Skills？
 
@@ -18,6 +18,8 @@ Skills 是结构化的知识文件（`SKILL.md`），为 AI 编程助手提供�
 - 理解 Kconfig 依赖关系和开发板配置
 - 从串口日志诊断设备错误
 - 遵循 TuyaOpen 编码规范和安全实践
+
+> **IDE 支持：** 技能包遵循 [Agent Skills](https://agentskills.io/) 开放标准，可在 Claude Code（TuyaOpen IDE）、Cursor 及任何兼容 AI 助手中自动加载。
 
 ## 技能列表
 
@@ -137,6 +139,7 @@ TuyaOpen-dev-skills/
 - [TuyaOpen](https://github.com/tuya/TuyaOpen) — SDK 主仓库
 - [TuyaOpen 文档](https://tuyaopen.ai/docs/quick-start) — 官方文档
 - [涂鸦 IoT 平台](https://platform.tuya.com) — 设备管理云平台
+- [Claude Code](https://claude.ai/code) — AI 编程助手（主要支持的 IDE）
 - [Cursor IDE](https://cursor.com) — AI 驱动的代码编辑器
 
 ## 参与贡献
