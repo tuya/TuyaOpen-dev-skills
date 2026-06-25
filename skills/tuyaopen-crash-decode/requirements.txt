@@ -1,7 +1,0 @@
-# crash_decode.py has no external Python dependencies.
-# It uses only Python stdlib: subprocess, glob, re, pathlib, argparse.
-# The addr2line binary is part of the platform toolchain:
-#   ARM (T5AI/T2/T3/LN882H): arm-none-eabi-binutils
-#     — auto-downloaded by `tos.py build` to TuyaOpen/platform/tools/
-#   ESP32/S3: xtensa-esp32*-elf-binutils, part of ESP-IDF
-#     — install via: https://docs.espressif.com/projects/esp-idf/en/latest/esp32/get-started/

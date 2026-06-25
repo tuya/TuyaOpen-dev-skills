@@ -49,14 +49,14 @@ holding a foreground terminal open.
 ## Quick start
 
 ```bash
-# Discover available CLI commands (auto-detects port + baud)
+# Discover available CLI commands (auto-detects port; baud is always 115200)
 python skills/tuyaopen-cli-debug/cli_debug.py help
 
 # Send a single command
 python skills/tuyaopen-cli-debug/cli_debug.py send "sys_version"
 
-# Specify port and baud explicitly
-python skills/tuyaopen-cli-debug/cli_debug.py -p /dev/ttyACM1 -b 460800 send "kv_dump"
+# Force a specific port (useful if auto-pick chooses the wrong ACM port)
+python skills/tuyaopen-cli-debug/cli_debug.py -p /dev/ttyACM0 send "kv_dump"
 
 # List candidate serial ports (no connection)
 python skills/tuyaopen-cli-debug/cli_debug.py list-ports
@@ -78,22 +78,24 @@ python skills/tuyaopen-cli-debug/cli_debug.py --json help
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `-p, --port <dev>` | auto | Serial port (e.g. `/dev/ttyACM1`) |
-| `-b, --baud <rate>` | platform default | Baud rate (T5AI: 460800, ESP32: 115200, LN882H: 921600) |
-| `--platform <name>` | auto | `t5ai`, `esp32`, `t2`, `t3`, `ln882h` |
+| `-p, --port <dev>` | auto | Serial port (e.g. `/dev/ttyACM0`) |
+| `-b, --baud <rate>` | **115200** | Baud rate. tal_cli hardcodes 115200 on every platform — do not override unless you have patched the SDK. |
 | `--timeout <sec>` | 3.0 | Seconds to wait for CLI response |
 | `--json` | off | Output results as JSON (stable keys: `ok`, `output`, `error`, `hint`) |
 | `-v, --verbose` | off | Print port discovery and timing details to stderr |
 
-## Platform baud rates
+## Baud rate
 
-| Platform | CLI UART | Default baud |
-|----------|---------|--------------|
-| T5AI (BK7258) | UART1 | 460800 |
-| T3 | UART1 | 460800 |
-| T2 | UART2 | 115200 |
-| LN882H | UART1 | 921600 |
-| ESP32 / ESP32-S3 | UART0 | 115200 |
+**Always 115200.** Hardcoded in `TuyaOpen/src/tal_cli/src/tal_cli.c:811`:
+
+```c
+cfg.base_cfg.baudrate = 115200;
+```
+
+This is platform-independent — T5AI, ESP32, T2, T3, LN882H all use 115200 for the
+`tal_cli` UART. Don't confuse this with the platform-specific log/monitor baud
+rate used by `tos.py monitor` (which can be 460800/921600 etc.); those use the
+chip vendor's own UART driver, not `tal_cli`.
 
 ## T5AI dual-serial port selection
 
