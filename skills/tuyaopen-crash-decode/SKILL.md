@@ -1,169 +1,169 @@
 ---
 name: tuyaopen-crash-decode
 description: >-
-  Decode TuyaOpen firmware crash dumps (PC, LR, stack addresses) to source
-  file:line using the platform toolchain. Use when the user pastes a panic log,
-  hard-fault dump, or register dump with hex addresses like "PC: 0x021d9094" or
-  "addr: 0x... data: 0x...". Supports T5AI (BK7258/ARM Cortex-M), ESP32/S3
-  (Xtensa), T2, T3, LN882H, and LINUX. 固件崩溃解码、panic、hard fault、PC/LR地址解析、addr2line。
+  Decode a TuyaOpen firmware crash dump (PC, LR, stack pointers) to source
+  file:line by invoking the right per-platform `addr2line` against the debug
+  ELF. Use when the user pastes a panic log / hard-fault dump containing raw
+  hex code addresses (e.g. "PC: 0x021d8e96"). Covers T5AI (BK7258, ARM
+  Cortex-M), ESP32/S3 (Xtensa), T2, T3, LN882H — each ships its own toolchain
+  inside the TuyaOpen tree.
+  固件崩溃解码、panic、hard fault、PC/LR地址解析、addr2line。
 license: Apache-2.0
 compatibility:
-  - TuyaOpen repository clone (dist/ or build tree with debug ELF)
-  - ARM: arm-none-eabi-binutils in TuyaOpen/platform/tools/ (auto-downloaded by tos.py build)
-  - ESP32: ESP-IDF installed ($IDF_PATH or ~/.espressif/) or xtensa-esp32*-elf in PATH
+  - TuyaOpen repository checked out with the matching commit/branch flashed to the device
+  - Toolchain available (`tos.py build` once is enough — it auto-downloads the right toolchain)
 ---
 
 # TuyaOpen Crash Decode
 
-Decodes a raw firmware panic / hard-fault log into readable source locations
-(`file:line` + demangled function names) using `addr2line` from the platform
-toolchain and the debug ELF produced by `tos.py build`.
+When firmware panics on a TuyaOpen device, the serial log dumps raw register
+values (`PC`, `LR`, sometimes `EPC1/2/3` for Xtensa) plus stack frame snapshots.
+These addresses point into the `.text` section of the flashed firmware — to
+turn them into useful information you need the **debug ELF** produced by the
+same build and a `*-addr2line` from the **same toolchain** that built it.
 
-## Quick start
+There is no shared Python wrapper. Just call the toolchain binary directly —
+the path is fully determined by the platform and is sitting in the TuyaOpen
+tree after the first `tos.py build`.
+
+## 1. Identify the platform from the dump
+
+| Dump signal | Platform | Toolchain prefix |
+|---|---|---|
+| `Firmware name: app@cpu0` or `app@cpu1`, `bk7258` in path | **T5AI** (dual-core ARM Cortex-M33) | `arm-none-eabi-` |
+| `ESP-IDF`, `EPC1/2/3`, `EXCVADDR`, `Guru Meditation Error` | **ESP32 / ESP32-S3** (Xtensa) | `xtensa-esp32-elf-` or `xtensa-esp32s3-elf-` |
+| Cortex-M registers (`PC`, `LR`, `xPSR`, `CFSR`), no `app@cpu` and no ESP-IDF | **T2 / T3 / LN882H** (single-core ARM Cortex-M) | `arm-none-eabi-` |
+| `RIP`, `RSP` (x86) | **LINUX** (Ubuntu/Raspberry Pi) | system `addr2line` |
+
+For T5AI dual-core: `app@cpu0` ↔ CP core ↔ `bk7258/app.elf`, `app@cpu1` ↔ AP core ↔ `bk7258_ap/app.elf`. Pick the matching one.
+
+## 2. Locate `addr2line`
+
+After `tos.py build` runs once for any platform, the matching toolchain lives under `TuyaOpen/platform/tools/`. Search order:
 
 ```bash
-# Paste crash dump, pipe to script (auto-discovers toolchain + ELF)
-python skills/tuyaopen-crash-decode/crash_decode.py < crash.txt
+# ARM (T5AI, T2, T3, LN882H)
+find TuyaOpen/platform/tools -name 'arm-none-eabi-addr2line' -executable | head -1
+# Example: TuyaOpen/platform/tools/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-addr2line
 
-# Or provide a dump file directly
-python skills/tuyaopen-crash-decode/crash_decode.py crash.txt
+# ESP32 / ESP32-S3 (Xtensa)
+find TuyaOpen/platform/ESP32/esp-idf -name 'xtensa-esp32s3-elf-addr2line' 2>/dev/null | head -1
+# Or, if ESP-IDF is installed system-wide:
+find ~/.espressif/tools "$IDF_PATH/tools" /opt/esp/tools -name 'xtensa-esp32*-elf-addr2line' 2>/dev/null | head -1
 
-# T5AI — only show parsed addresses, skip decoding
-python skills/tuyaopen-crash-decode/crash_decode.py --dump-only crash.txt
-
-# Override ELF and toolchain paths explicitly
-python skills/tuyaopen-crash-decode/crash_decode.py \
-  --elf dist/MyProject_1.0.0/debug/bk7258_ap/app.elf \
-  --toolchain TuyaOpen/platform/tools/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-addr2line \
-  crash.txt
+# Linux / Ubuntu / Raspberry Pi
+which addr2line
 ```
 
-## Step-by-step for an agent
+If `find` returns empty for an embedded platform, run `tos.py build` once to trigger the toolchain download. The same directory also contains `*-nm`, `*-objdump`, `*-readelf` — useful for the steps below.
 
-1. **Capture the crash dump** — use `tuyaopen-flash-monitor` or `agent-hardware-debug-helper-tools` to capture the device log. A typical T5AI crash looks like:
+## 3. Locate the debug ELF
 
-   ```
-   Firmware name: app@cpu1
-   Exception Type: Data Abort
-   PC: 0x021d9094
-   LR: 0x021d1420
-   SP: 0x3fff0a80
-   ...
-   addr: 0x3fff0a80  data: 0x021d1414
-   addr: 0x3fff0a84  data: 0x021d9094
-   ```
+Search order (highest priority first):
 
-2. **Save the dump** and run `crash_decode.py`:
+```bash
+# T5AI (dual-core, two ELFs)
+ls -t dist/*/debug/bk7258_ap/app.elf 2>/dev/null | head -1     # CPU1 / AP
+ls -t dist/*/debug/bk7258/app.elf    2>/dev/null | head -1     # CPU0 / CP
 
-   ```bash
-   python skills/tuyaopen-crash-decode/crash_decode.py crash.txt
-   ```
+# Single-CPU platforms (ESP32, T2, T3, LN882H)
+ls -t dist/*/*/*.elf 2>/dev/null | head -3
 
-3. **Read the output** — the script prints register address frames, then stack code-pointer candidates:
-
-   ```
-   [crash_decode] Platform detected: t5ai (CPU1/AP core)
-   [crash_decode] Toolchain: TuyaOpen/platform/tools/gcc-arm-none-eabi-.../arm-none-eabi-addr2line
-   [crash_decode] ELF: dist/DuckyClaw_1.0.0/debug/bk7258_ap/app.elf
-
-   === Register Addresses (PC / LR / EPC) ===
-     PC = 0x021d9094
-       Function: lv_obj_get_scrollbar_mode
-       Location: .../lv_obj_scroll.c:94
-
-     LR = 0x021d1420
-       Function: ai_chat_ui_init
-       Location: .../ai_chat_ui.c:150 (discriminator 1)
-
-   === Stack Code Pointers (4 candidates) ===
-     0x021d1414  →  ai_chat_ui_init
-                 at .../ai_chat_ui.c:142
-     0x021d9094  →  lv_obj_get_scrollbar_mode
-                 at .../lv_obj_scroll.c:94
-   ```
-
-4. **Investigate the crash site** — open the indicated file:line in your editor. Common next steps:
-   - Null pointer dereference: inspect the callers of the faulting function for missing NULL checks.
-   - Stack overflow: check thread stack sizes (see `tuyaopen-thread-crash` skill).
-   - Use `--nm` flag to print nearby symbol context for extra orientation.
-
-## Platform detection
-
-The script auto-detects the platform by scanning the dump text for register names
-and firmware version strings:
-
-| Platform | Detection signals |
-|----------|------------------|
-| T5AI (BK7258) | `Firmware name: app@cpu1`, `bk7258`, ARM Cortex-M register names |
-| ESP32 / ESP32-S3 | `ESP-IDF`, `EPC1`, `EXCVADDR`, Xtensa register names |
-| T2 / T3 / LN882H | ARM Cortex-M registers (PC, LR, XPSR), no T5/ESP32 hints |
-| LINUX | x86 register names (RIP, RSP, etc.) |
-
-Use `--platform <name>` to override if auto-detection is wrong.
-
-## ELF discovery
-
-The script searches in this order:
-
-```
-dist/*/debug/bk7258_ap/app.elf   ← T5AI CPU1 (app@cpu1 dump)
-dist/*/debug/bk7258/app.elf      ← T5AI CPU0
-dist/*/debug/*/app.elf           ← Any platform, single-CPU
-dist/*/*.elf                     ← Single-CPU fallback
-TuyaOpen/platform/*/build/**/*.elf
-.build/bin/debug/*/app.elf
-.build/bin/*.elf
+# Build tree (if dist/ is empty / not regenerated yet)
+find TuyaOpen/platform -type f -name '*.elf' -path '*/build/*' 2>/dev/null | head -3
+ls -t .build/bin/debug/*/app.elf .build/bin/*.elf 2>/dev/null | head -3
 ```
 
-The **newest** ELF matching the highest-priority path wins. Use `--elf <path>` to
-specify explicitly if multiple ELFs exist (e.g. after builds for different targets).
+**The ELF must match the flashed binary exactly.** If the user rebuilt after the panic, ask them to either re-flash + reproduce the panic, OR `git checkout` the exact commit they flashed and `tos.py clean -f && tos.py build` to regenerate the matching ELF.
 
-**Important:** The ELF must match the flashed binary exactly. If you built after
-the crash, rebuild the same commit or keep the old `dist/` output.
+## 4. Decode
 
-## Toolchain discovery
+Single command — `addr2line` in inline mode (`-i`), with function name (`-f`) and demangled C++ symbols (`-C`):
+
+```bash
+ADDR2LINE=TuyaOpen/platform/tools/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-addr2line
+ELF=dist/MyProject_1.0.0/debug/bk7258_ap/app.elf
+
+# Decode PC + LR
+$ADDR2LINE -e $ELF -f -C -i 0x021d8e96 0x021d5863
+
+# Decode the saved stack frame return addresses (skip non-code stack values)
+$ADDR2LINE -e $ELF -f -C -i  \
+   0x021d139d 0x021b838d 0x0219be41 0x0219c423 0x0219bfd1 0x021d10e3
+```
+
+Example real output (T5AI, DuckyClaw wechat UI null deref):
 
 ```
-TuyaOpen/platform/tools/*/bin/arm-none-eabi-addr2line   ← preferred (ARM)
-~/.espressif/tools/**/bin/xtensa-esp32s3-elf-addr2line  ← ESP32
-$IDF_PATH/tools/**/xtensa-esp32*-elf-addr2line          ← ESP32 (IDF env)
-/opt/esp/tools/**                                        ← ESP32 (system)
-arm-none-eabi-addr2line (in PATH)                        ← system fallback
+lv_obj_get_scrollbar_mode
+TuyaOpen/src/liblvgl/v9/lvgl/src/core/lv_obj_scroll.c:94
+lv_obj_get_scrollbar_area
+TuyaOpen/src/liblvgl/v9/lvgl/src/core/lv_obj_scroll.c:453
+lv_obj_remove_flag
+TuyaOpen/src/liblvgl/v9/lvgl/src/core/lv_obj.c:159
 ```
 
-Use `--toolchain <path>` to override.
+That's it. PC was inside `lv_obj_get_scrollbar_mode`, called from `lv_obj_get_scrollbar_area`, called from `lv_obj_remove_flag`.
 
-## Options reference
+## 5. Extract addresses from the dump
 
-| Option | Default | Description |
-|--------|---------|-------------|
-| `--elf <path>` | auto | Path to debug ELF file |
-| `--toolchain <path>` | auto | Path to `addr2line` binary |
-| `--platform <name>` | auto | `t5ai`, `esp32`, `t2`, `t3`, `ln882h`, `linux` |
-| `--nm` | off | Print nm symbol context (nearby functions) for each address |
-| `--dump-only` | off | Only show parsed addresses, skip addr2line decode |
+Crash dumps have a specific layout per platform — when assisting a user, copy the dump verbatim and apply these rules:
 
-## Stack address filtering
+- **PC / LR** (Cortex-M T5AI/T2/T3/LN882H): lines like
+  ```
+  pc x 0x21d8e96
+  lr x 0x21d5863
+  ```
+  (sometimes `PC:` and `LR:` capitalized — both forms appear).
 
-Stack data lines (`addr: 0x...  data: 0x...`) are common in BK7258/ARM dumps.
-The script only includes `data:` values as code-pointer candidates when they fall
-within the same memory region as PC/LR (a ±2 MB window, or 2× the PC–LR gap).
-This filters out obvious data values (NULL, small integers, heap pointers).
+- **PC / EPC** (Xtensa ESP32): `PC : 0x420f3a11`, `EPC1 : 0x...`, etc.
 
-## Troubleshooting
+- **Stack frame return addresses** (any platform): the dump prints lines like
+  ```
+  addr: 60fdfde0    data: 2801cc54
+  addr: 60fdfde4    data: 00000000
+  addr: 60fdfdb4    data: 021d5873   ← code pointer
+  ```
+  Filter `data:` values to keep only those in the same 16 MB region as PC/LR
+  (looser: same upper byte). Drop NULL (`0x00000000`), small integers
+  (`< 0x00010000`), and obvious stack/heap pointers (`0x3fc...`, `0x60f...`,
+  `0x2801....` for T5 SRAM/PSRAM).
 
-| Symptom | Cause | Fix |
-|---------|-------|-----|
-| `addr2line not found` | Toolchain not downloaded | Run `tos.py build` once to trigger toolchain download, or `--toolchain` |
-| `ELF not found` | No debug ELF in `dist/` | Build with debug info (`tos.py build`); check `dist/*/debug/*/app.elf` |
-| All addresses decode to `??` | ELF does not match flashed binary | Use the ELF from the same build that was flashed |
-| `Firmware name: app@cpu0` but getting wrong decode | Wrong ELF core selected | Use `--elf dist/.../bk7258/app.elf` (CPU0) instead of `bk7258_ap` |
-| ESP32 toolchain not found | ESP-IDF not installed | `pip install esptool` won't help; install ESP-IDF or use `--toolchain` |
-| Stack addresses all `unknown` | Stack contains data values, not return addresses | Normal — the register PC/LR frames are the reliable ones |
+After filtering, batch all candidate code pointers into one `addr2line -i` call.
+
+## 6. Get symbol context (optional)
+
+If `addr2line` returns `??` for an address but you know the ELF matches, the
+address may sit between functions (e.g. in a literal pool). Use the matching
+`*-nm` to find the nearest symbol:
+
+```bash
+NM=TuyaOpen/platform/tools/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-nm
+$NM --size-sort --print-size $ELF | awk -v a=0x021d8e96 'BEGIN{a=strtonum(a)} \
+   { s=strtonum("0x"$1); if (a >= s && a < s + strtonum("0x"$2)) print }'
+```
+
+Or dump the disassembly around the address:
+
+```bash
+OBJDUMP=TuyaOpen/platform/tools/gcc-arm-none-eabi-10.3-2021.10/bin/arm-none-eabi-objdump
+$OBJDUMP -d --start-address=0x021d8e80 --stop-address=0x021d8ec0 $ELF
+```
+
+## 7. Common gotchas
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| All addresses decode to `??` | ELF doesn't match flashed binary | Re-flash + reproduce, or `git checkout` to the matching commit and rebuild |
+| Some addresses decode, some don't | Some `data:` values aren't return addresses (data on stack) | Expected — only PC/LR + filtered code pointers are reliable |
+| `addr2line: command not found` | Toolchain not downloaded yet | Run `tos.py build` once for any board → toolchain downloads to `TuyaOpen/platform/tools/` |
+| ESP32: `xtensa-esp32s3-elf-addr2line` missing | ESP-IDF not installed | Install ESP-IDF, source `export.sh`, or use the toolchain bundled in `TuyaOpen/platform/ESP32/` after first build |
+| Wrong T5AI core decoded (results don't make sense) | Picked `bk7258/app.elf` for an `app@cpu1` dump | Use `bk7258_ap/app.elf` for cpu1, `bk7258/app.elf` for cpu0 |
+| `??:0` for inlined function | `addr2line` resolved the outermost but missed inlined frames | Make sure `-i` flag is present (inline mode); also re-build with `-g` if missing |
 
 ## Related skills
 
-- **`tuyaopen-thread-crash`** — thread stack overflow analysis (complements this skill).
-- **`tuyaopen-flash-monitor`** — capture device logs over serial to feed into this skill.
-- **`agent-hardware-debug-helper-tools`** — detached serial logging + port discovery.
-- **`tuyaopen-build`** — rebuild with debug info if ELF is missing.
+- **`tuyaopen-build`** — rebuild firmware with debug info enabled.
+- **`tuyaopen-flash-monitor`** — capture the device serial log that contains the crash dump.
+- **`agent-hardware-debug-helper-tools`** — background serial logger; useful for grabbing the dump hands-off.
+- **`tuyaopen-cli-debug`** — once the device is responsive again, inspect runtime state via CLI.

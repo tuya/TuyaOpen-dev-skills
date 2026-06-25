@@ -19,8 +19,8 @@ Sub-commands:
 
 Options:
     -p, --port <dev>     Serial port (e.g. /dev/ttyACM0). Auto-detected if omitted.
-    -b, --baud <rate>    Baud rate. Default: 460800 for T5AI, 115200 for ESP32/others.
-    --platform <name>    Platform hint: t5ai, esp32, t2, t3, ln882h (for baud default).
+    -b, --baud <rate>    Baud rate. Default: 115200 (hardcoded in
+                         TuyaOpen/src/tal_cli/src/tal_cli.c:811 for ALL platforms).
     --timeout <sec>      Seconds to wait for prompt after sending command. Default: 3.
     --json               Output results as JSON (useful for agent callers).
     -v, --verbose        Print port discovery and timing details to stderr.
@@ -63,25 +63,18 @@ except ImportError:
     sys.exit(1)
 
 # ---------------------------------------------------------------------------
-# Platform defaults
+# Constants
 # ---------------------------------------------------------------------------
 
-PLATFORM_BAUD = {
-    't5ai': 460800,
-    'bk7258': 460800,
-    't3': 460800,
-    't2': 115200,
-    'ln882h': 921600,
-    'esp32': 115200,
-    'esp32s3': 115200,
-    'linux': None,   # No physical UART
-}
+# TuyaOpen tal_cli hardcodes 115200 on ALL platforms.
+# Source: TuyaOpen/src/tal_cli/src/tal_cli.c:811 — `cfg.base_cfg.baudrate = 115200;`
+CLI_BAUD = 115200
 
-# T5AI: WCH CH34x dual-serial VID/PID
+# T5AI: WCH CH34x dual-serial VID/PID (one device exposes two ttyACM)
 T5_VID = 0x1A86
 T5_PID = 0x55D2
 
-# Common USB-UART VID/PID pairs
+# Common USB-UART VID/PID pairs (informational for `list-ports` scoring)
 COMMON_SERIAL_IDS = {
     (0x10C4, 0xEA60): 'CP210x',
     (0x1A86, 0x7523): 'CH340',
@@ -99,8 +92,7 @@ def _vlog(verbose: bool, msg: str) -> None:
         print(f'[cli_debug] {msg}', file=sys.stderr)
 
 
-def list_candidate_ports(platform: Optional[str] = None, verbose: bool = False
-                         ) -> List[dict]:
+def list_candidate_ports(verbose: bool = False) -> List[dict]:
     """Return a list of dicts describing candidate serial ports."""
     ports = serial.tools.list_ports.comports()
     candidates = []
@@ -139,7 +131,7 @@ def list_candidate_ports(platform: Optional[str] = None, verbose: bool = False
     return candidates
 
 
-def pick_port(platform: Optional[str] = None, verbose: bool = False) -> Optional[str]:
+def pick_port(verbose: bool = False) -> Optional[str]:
     """
     Auto-pick the best monitor/CLI serial port.
 
@@ -147,7 +139,7 @@ def pick_port(platform: Optional[str] = None, verbose: bool = False) -> Optional
     port is typically the log/monitor/CLI port; the lower port is for flashing.
     (This is a heuristic — swap with -p if output is garbled.)
     """
-    candidates = list_candidate_ports(platform, verbose)
+    candidates = list_candidate_ports(verbose)
     if not candidates:
         return None
 
@@ -344,9 +336,8 @@ def main() -> int:
                         help='Sub-command')
     parser.add_argument('command_args', nargs='*', help='Arguments for send/raw sub-commands')
     parser.add_argument('-p', '--port', help='Serial port (auto-detected if omitted)')
-    parser.add_argument('-b', '--baud', type=int, help='Baud rate (default: platform default)')
-    parser.add_argument('--platform', choices=list(PLATFORM_BAUD.keys()),
-                        help='Platform hint for baud rate default')
+    parser.add_argument('-b', '--baud', type=int, default=CLI_BAUD,
+                        help=f'Baud rate (default: {CLI_BAUD} — hardcoded by tal_cli.c on all platforms)')
     parser.add_argument('--timeout', type=float, default=3.0,
                         help='Seconds to wait for CLI response (default: 3)')
     parser.add_argument('--json', action='store_true', dest='as_json',
@@ -356,7 +347,7 @@ def main() -> int:
 
     # ---- list-ports ----
     if args.subcommand == 'list-ports':
-        candidates = list_candidate_ports(args.platform, args.verbose)
+        candidates = list_candidate_ports(verbose=args.verbose)
         result = {'ok': True, 'ports': candidates}
         _output(result, args.as_json)
         if not args.as_json:
@@ -364,7 +355,7 @@ def main() -> int:
         return 0
 
     # ---- Resolve port ----
-    port = args.port or pick_port(args.platform, args.verbose)
+    port = args.port or pick_port(verbose=args.verbose)
     if not port:
         result = {
             'ok': False,
@@ -378,30 +369,7 @@ def main() -> int:
         _output(result, args.as_json)
         return 1
 
-    # ---- Resolve baud ----
-    if args.baud:
-        baud = args.baud
-    elif args.platform:
-        baud = PLATFORM_BAUD.get(args.platform, 460800)
-    else:
-        # Heuristic: if it's a T5 port, use 460800; otherwise 115200
-        candidates = list_candidate_ports(args.platform, args.verbose)
-        is_t5 = any(
-            c['device'] == port and 'T5AI' in c.get('note', '').upper()
-            for c in candidates
-        )
-        # Also check VID/PID directly
-        if not is_t5:
-            for c in candidates:
-                if c['device'] == port:
-                    vid_str = c.get('vid', '')
-                    pid_str = c.get('pid', '')
-                    if vid_str == f'0x{T5_VID:04x}' and pid_str == f'0x{T5_PID:04x}':
-                        is_t5 = True
-                    break
-        baud = 460800 if is_t5 else 115200
-        _vlog(args.verbose, f'Baud auto-selected: {baud} (T5AI={is_t5})')
-
+    baud = args.baud  # default = CLI_BAUD = 115200
     if args.verbose:
         _vlog(True, f'Using port={port} baud={baud}')
 
@@ -428,8 +396,10 @@ def main() -> int:
                         'No data received. Possible causes:\n'
                         '  1. CONFIG_ENABLE_SERIAL_CLI_CMD=y is not set — rebuild firmware.\n'
                         '  2. Wrong port — try the other ACM port with -p.\n'
-                        '  3. Wrong baud rate — use --baud (T5AI: 460800, ESP32: 115200).\n'
-                        '  4. Device is powered off or not booted.\n'
+                        '  3. Device is powered off, not booted, or stuck in panic.\n'
+                        '  4. Port is held by another process (e.g. tos.py monitor).\n'
+                        'tal_cli always runs at 115200 baud on every platform — '
+                        'no need to try other rates.\n'
                         'After fixing config: tos.py clean -f && tos.py build && tos.py flash'
                     )
                 }
