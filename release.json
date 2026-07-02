@@ -6,6 +6,7 @@
   "package": {
     "github": "https://github.com/tuya/TuyaOpen-dev-skills/releases/download/v0.0.8/TuyaOpen-dev-skills.tar.gz",
     "gitee": "https://gitee.com/tuya-open/TuyaOpen-dev-skills/releases/download/v0.0.8/TuyaOpen-dev-skills.tar.gz",
+    "tuyacn": "https://images.tuyacn.com/tuyaopen/tuyaopen-ide-assets/TuyaOpen-dev-skills/TuyaOpen-dev-skills-0.0.8.tar.gz",
     "sha256": "4104564ef5d8ca1a19916157e2970fce657b96185d989f170d6a59ec827ebd55",
     "size": 38642
   }
