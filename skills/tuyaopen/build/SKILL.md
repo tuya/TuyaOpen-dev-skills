@@ -79,6 +79,14 @@ Key points:
 - Boolean options: `CONFIG_X=y` to enable, `# CONFIG_X is not set` to disable.
 - String options: `CONFIG_X="value"`. Integer options: `CONFIG_X=1234`.
 
+> **After editing `app_default.config`, run `tos.py clean` before rebuilding.**
+> Unlike `config choice` / `config menu` (which trigger a full clean automatically), a manual edit of `app_default.config` does **not** clean the build. Without a clean, the stale `.build/cache/using.config` may be reused and your changes silently ignored:
+> ```bash
+> # after editing app_default.config
+> tos.py clean        # then rebuild
+> tos.py build
+> ```
+
 Common platform + board config pairs:
 
 | Target | `app_default.config` lines |
