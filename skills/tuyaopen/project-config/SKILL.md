@@ -118,7 +118,7 @@ tos.py config choice -d -c TUYA_T5AI_EVB  # from boards/ default configs
 
 Or edit `app_default.config` directly for custom configurations — no TTY needed. See skill `tuyaopen/build` for format details and Kconfig dependency handling.
 
-> **After editing `app_default.config`, run `tos.py clean` before rebuilding.** Unlike `config choice` / `config menu` (which clean automatically), a manual edit does **not** trigger a clean, so the stale `.build/cache/using.config` may be reused and your changes ignored. Run `tos.py clean` then `tos.py build`.
+> **After editing `app_default.config`, run `tos.py clean -f` before rebuilding.** Unlike `config choice` / `config menu` (which clean automatically), a manual edit does **not** trigger a clean, so the stale `.build/cache/using.config` may be reused and your changes ignored. Run `tos.py clean -f` then `tos.py build`.
 
 ## Non-Interactive Project Creation (Agent / CI)
 
