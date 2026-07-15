@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "version": "0.0.9",
-  "tag": "v0.0.9",
-  "publishedAt": "2026-07-03T09:14:01Z",
+  "version": "0.0.10",
+  "tag": "v0.0.10",
+  "publishedAt": "2026-07-15T07:26:22Z",
   "package": {
-    "github": "https://github.com/tuya/TuyaOpen-dev-skills/releases/download/v0.0.9/TuyaOpen-dev-skills.tar.gz",
-    "gitee": "https://gitee.com/tuya-open/TuyaOpen-dev-skills/releases/download/v0.0.9/TuyaOpen-dev-skills.tar.gz",
-    "tuyacn": "https://images.tuyacn.com/tuyaopen/tuyaopen-ide-assets/TuyaOpen-dev-skills/TuyaOpen-dev-skills-0.0.9.tar.gz",
-    "sha256": "8009cb2e08883b3d239adbdfcea2b050ee939691731c40c41f2ffc42a67c3ede",
-    "size": 38796
+    "github": "https://github.com/tuya/TuyaOpen-dev-skills/releases/download/v0.0.10/TuyaOpen-dev-skills.tar.gz",
+    "gitee": "https://gitee.com/tuya-open/TuyaOpen-dev-skills/releases/download/v0.0.10/TuyaOpen-dev-skills.tar.gz",
+    "tuyacn": "https://images.tuyacn.com/tuyaopen/tuyaopen-ide-assets/TuyaOpen-dev-skills/TuyaOpen-dev-skills-0.0.10.tar.gz",
+    "sha256": "97389fbba3cd6cf398ed83ffb6e318d03d707873e0e4c64a744f0215aeb0c597",
+    "size": 38809
   }
 }
